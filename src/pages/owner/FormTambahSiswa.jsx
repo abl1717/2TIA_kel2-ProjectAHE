@@ -5,6 +5,7 @@ export default function FormTambahSiswa({
   onClose,
   onSubmit,
   orangTuaList,
+  pengajarList,
   mode = "tambah",
   dataEdit = null,
 }) {
@@ -16,6 +17,7 @@ export default function FormTambahSiswa({
     tanggalLahir: "",
     alamat: "",
     idOrangTua: "",
+    idPengajar: "",
   });
 
   const [formOrangTua, setFormOrangTua] = useState({
@@ -33,6 +35,7 @@ export default function FormTambahSiswa({
         tanggalLahir: dataEdit.tanggalLahir || "",
         alamat: dataEdit.alamat || "",
         idOrangTua: dataEdit.idOrangTua || "",
+        idPengajar: dataEdit.idPengajar || "",
       });
 
       setTipeOrangTua("lama");
@@ -77,15 +80,20 @@ export default function FormTambahSiswa({
       !formSiswa.nama ||
       !formSiswa.jenisKelamin ||
       !formSiswa.tanggalLahir ||
-      !formSiswa.alamat
+      !formSiswa.alamat ||
+      !formSiswa.idPengajar
     ) {
-      alert("Lengkapi data siswa terlebih dahulu.");
+      alert("Lengkapi data siswa dan pilih pengajar terlebih dahulu.");
       return;
     }
 
     onSubmit({
       tipeOrangTua,
-      siswa: formSiswa,
+      siswa: {
+        ...formSiswa,
+        idOrangTua: formSiswa.idOrangTua ? Number(formSiswa.idOrangTua) : "",
+        idPengajar: Number(formSiswa.idPengajar),
+      },
       orangTua: formOrangTua,
     });
   };
@@ -102,7 +110,7 @@ export default function FormTambahSiswa({
             <p className="mt-1 text-sm text-gray-500">
               {mode === "edit"
                 ? "Ubah data siswa yang sudah terdaftar."
-                : "Daftarkan siswa baru dan hubungkan dengan data orang tua."}
+                : "Daftarkan siswa baru, hubungkan dengan orang tua, dan pilih pengajarnya."}
             </p>
           </div>
 
@@ -220,6 +228,20 @@ export default function FormTambahSiswa({
                 onChange={handleSiswaChange}
                 className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
               />
+
+              <select
+                name="idPengajar"
+                value={formSiswa.idPengajar}
+                onChange={handleSiswaChange}
+                className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+              >
+                <option value="">Pilih pengajar</option>
+                {pengajarList.map((pengajar) => (
+                  <option key={pengajar.id} value={pengajar.id}>
+                    {pengajar.nama}
+                  </option>
+                ))}
+              </select>
 
               <textarea
                 name="alamat"

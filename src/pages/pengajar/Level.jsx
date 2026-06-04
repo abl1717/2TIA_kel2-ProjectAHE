@@ -1,33 +1,49 @@
-import React from "react";
-import { FaEdit, FaEye, FaClipboardList, FaUserGraduate } from "react-icons/fa";
+import React, { useState } from "react";
+import {
+  FaEdit,
+  FaClipboardList,
+  FaUserGraduate,
+  FaBookOpen,
+} from "react-icons/fa";
 
 import { levelPembelajaranData } from "../../data/levelPembelajaran";
 import { siswaData } from "../../data/siswa";
 import { pengajarData } from "../../data/pengajar";
 import { modulData } from "../../data/modul";
 
+const FormCatatLevel = React.lazy(() => import("./FormCatatLevel"));
+
 const PengajarPageHeader = React.lazy(
   () => import("../../components/pengajar/PageHeader"),
 );
 
 export default function Level() {
+  const [showForm, setShowForm] = useState(false);
+  const [listLevel, setListLevel] = useState(levelPembelajaranData);
+  const [editLevel, setEditLevel] = useState(null);
+
   const pengajarLogin = pengajarData.find((pengajar) => {
-    return pengajar.nama === "Pak Andi";
+    return pengajar.nama === "Bu Rina";
   });
 
-  const dataLevelPengajar = levelPembelajaranData.filter((level) => {
+  const dataLevelPengajar = listLevel.filter((level) => {
     return level.idPengajar === pengajarLogin.id;
   });
 
   const totalSiswa = dataLevelPengajar.length;
 
-  const levelBerjalan = dataLevelPengajar.filter((level) => {
-    return level.status === "Berjalan";
+  const totalLevelBerbeda = new Set(dataLevelPengajar.map((item) => item.level))
+    .size;
+
+  const totalModulTerkait = dataLevelPengajar.filter((item) => {
+    return modulData.some((modul) => modul.level === item.level);
   }).length;
 
-  const perluBimbingan = dataLevelPengajar.filter((level) => {
-    return level.status === "Perlu Bimbingan";
-  }).length;
+  const siswaYangSudahAdaLevel = dataLevelPengajar.map((item) => item.idSiswa);
+
+  const siswaBelumDicatat = siswaData.filter((siswa) => {
+    return !siswaYangSudahAdaLevel.includes(siswa.id);
+  });
 
   const getSiswa = (idSiswa) => {
     return siswaData.find((siswa) => siswa.id === idSiswa);
@@ -37,33 +53,68 @@ export default function Level() {
     return modulData.find((modul) => modul.level === levelSiswa);
   };
 
+  const handleTambahLevel = (data) => {
+    const levelBaru = {
+      id: listLevel.length + 1,
+      idSiswa: data.levelPembelajaran.idSiswa,
+      idPengajar: data.levelPembelajaran.idPengajar,
+      level: data.levelPembelajaran.level,
+      keterangan: data.levelPembelajaran.keterangan,
+    };
+
+    setListLevel([...listLevel, levelBaru]);
+    setShowForm(false);
+  };
+
+  const handleEditLevel = (data) => {
+    const hasilUpdate = listLevel.map((item) => {
+      if (item.id === data.levelPembelajaran.id) {
+        return {
+          ...item,
+          idSiswa: data.levelPembelajaran.idSiswa,
+          idPengajar: data.levelPembelajaran.idPengajar,
+          level: data.levelPembelajaran.level,
+          keterangan: data.levelPembelajaran.keterangan,
+        };
+      }
+
+      return item;
+    });
+
+    setListLevel(hasilUpdate);
+    setEditLevel(null);
+  };
+
   return (
-    <div>
+    <div className="pengajar-bg min-h-screen rounded-[36px] p-5">
       <PengajarPageHeader
         title="Level Pembelajaran"
         breadcrumb="Level Pembelajaran"
       />
 
-      <div className="rounded-[32px] bg-white/60 p-6 shadow-sm">
+      <div className="pengajar-glass-panel rounded-[32px] p-6">
         <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
             <h2 className="text-2xl font-bold text-[#240a29]">
               Data Level Pembelajaran Siswa
             </h2>
 
-            <p className="mt-1 text-sm text-gray-400">
-              Pengajar dapat melihat dan memperbarui level pembelajaran anak
+            <p className="mt-1 text-sm text-gray-500">
+              Pengajar dapat melihat dan memperbarui level pembelajaran siswa
               yang diajarnya.
             </p>
           </div>
 
-          <button className="rounded-2xl bg-gradient-to-r from-[#6b1d7c] via-[#cf30a2] to-[#ed6a45] px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:scale-105">
+          <button
+            onClick={() => setShowForm(true)}
+            className="rounded-2xl bg-gradient-to-r from-[#6b1d7c] via-[#cf30a2] to-[#ed6a45] px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:scale-105"
+          >
             + Catat Level Baru
           </button>
         </div>
 
         <div className="mb-6 grid gap-5 md:grid-cols-3">
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
+          <div className="pengajar-glass-card rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01]">
             <div className="flex items-center gap-4">
               <div className="rounded-2xl bg-gradient-to-br from-[#6b1d7c] to-[#b230cf] p-4 text-2xl text-white shadow-md">
                 <FaClipboardList />
@@ -81,7 +132,7 @@ export default function Level() {
             </div>
           </div>
 
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
+          <div className="pengajar-glass-card rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01]">
             <div className="flex items-center gap-4">
               <div className="rounded-2xl bg-gradient-to-br from-[#cf30a2] to-[#ed6a45] p-4 text-2xl text-white shadow-md">
                 <FaUserGraduate />
@@ -89,45 +140,44 @@ export default function Level() {
 
               <div>
                 <p className="text-sm font-semibold text-gray-400">
-                  Level Berjalan
+                  Level Berbeda
                 </p>
 
                 <h3 className="text-3xl font-bold text-[#240a29]">
-                  {levelBerjalan}
+                  {totalLevelBerbeda}
                 </h3>
               </div>
             </div>
           </div>
 
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
+          <div className="pengajar-glass-card rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01]">
             <div className="flex items-center gap-4">
               <div className="rounded-2xl bg-gradient-to-br from-[#ed6a45] to-[#cf30a2] p-4 text-2xl text-white shadow-md">
-                <FaClipboardList />
+                <FaBookOpen />
               </div>
 
               <div>
                 <p className="text-sm font-semibold text-gray-400">
-                  Perlu Bimbingan
+                  Modul Terkait
                 </p>
 
                 <h3 className="text-3xl font-bold text-[#240a29]">
-                  {perluBimbingan}
+                  {totalModulTerkait}
                 </h3>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
-          <div className="flex flex-col justify-between gap-4 border-b border-gray-100 p-5 md:flex-row md:items-center">
+        <div className="pengajar-glass-card overflow-hidden rounded-3xl">
+          <div className="flex flex-col justify-between gap-4 border-b border-white/50 p-5 md:flex-row md:items-center">
             <div>
               <h3 className="text-xl font-bold text-[#240a29]">
                 Daftar Level Siswa
               </h3>
 
-              <p className="mt-1 text-sm text-gray-400">
-                Data diambil dari relasi levelPembelajaran, siswa, pengajar, dan
-                modul.
+              <p className="mt-1 text-sm text-gray-500">
+                Data sementara menggunakan state React.
               </p>
             </div>
 
@@ -135,15 +185,18 @@ export default function Level() {
               <input
                 type="text"
                 placeholder="Cari nama siswa..."
-                className="rounded-2xl border border-gray-200 px-5 py-3 text-sm outline-none focus:border-[#cf30a2] focus:ring-4 focus:ring-[#cf30a2]/10"
+                className="pengajar-glass-input rounded-2xl px-5 py-3 text-sm text-[#240a29] outline-none placeholder:text-gray-400 focus:border-[#cf30a2] focus:ring-4 focus:ring-[#cf30a2]/10"
               />
 
-              <select className="rounded-2xl border border-gray-200 px-5 py-3 text-sm text-[#240a29] outline-none focus:border-[#cf30a2]">
+              <select className="pengajar-glass-input rounded-2xl px-5 py-3 text-sm text-[#240a29] outline-none focus:border-[#cf30a2]">
                 <option>Semua Level</option>
                 <option>Level 1</option>
                 <option>Level 2</option>
                 <option>Level 3</option>
                 <option>Level 4</option>
+                <option>Level 5</option>
+                <option>Level 6</option>
+                <option>Level 7</option>
               </select>
             </div>
           </div>
@@ -151,14 +204,12 @@ export default function Level() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[950px] text-left">
               <thead>
-                <tr className="bg-[#faeaf6] text-sm text-[#240a29]">
+                <tr className="bg-white/35 text-sm text-[#240a29] backdrop-blur-md">
                   <th className="px-6 py-4">No</th>
                   <th className="px-6 py-4">Nama Siswa</th>
                   <th className="px-6 py-4">Level</th>
                   <th className="px-6 py-4">Modul</th>
-                  <th className="px-6 py-4">Kemampuan</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Update Terakhir</th>
+                  <th className="px-6 py-4">Keterangan</th>
                   <th className="px-6 py-4 text-center">Aksi</th>
                 </tr>
               </thead>
@@ -171,7 +222,7 @@ export default function Level() {
                   return (
                     <tr
                       key={item.id}
-                      className="border-b border-gray-100 text-sm transition hover:bg-[#faeaf6]"
+                      className="border-b border-white/40 text-sm transition hover:bg-white/35"
                     >
                       <td className="px-6 py-4 font-semibold text-[#240a29]">
                         {index + 1}
@@ -179,7 +230,7 @@ export default function Level() {
 
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f7d4ee] font-bold text-[#6b1d7c]">
+                          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#6b1d7c] to-[#cf30a2] font-bold text-white shadow-md">
                             {siswa ? siswa.nama.charAt(0) : "-"}
                           </div>
 
@@ -190,7 +241,7 @@ export default function Level() {
                       </td>
 
                       <td className="px-6 py-4">
-                        <span className="rounded-full bg-[#cf30a2]/10 px-3 py-1 text-xs font-bold text-[#cf30a2]">
+                        <span className="rounded-full border border-[#cf30a2]/20 bg-[#cf30a2]/10 px-3 py-1 text-xs font-bold text-[#cf30a2] backdrop-blur-md">
                           {item.level}
                         </span>
                       </td>
@@ -200,34 +251,15 @@ export default function Level() {
                       </td>
 
                       <td className="px-6 py-4 text-gray-500">
-                        {item.kemampuan}
+                        {item.keterangan || "-"}
                       </td>
 
                       <td className="px-6 py-4">
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-bold ${
-                            item.status === "Berjalan"
-                              ? "bg-green-50 text-green-600"
-                              : item.status === "Selesai"
-                                ? "bg-[#cf30a2]/10 text-[#cf30a2]"
-                                : "bg-[#ed6a45]/10 text-[#e84417]"
-                          }`}
-                        >
-                          {item.status}
-                        </span>
-                      </td>
-
-                      <td className="px-6 py-4 text-gray-500">
-                        {item.tanggalUpdate}
-                      </td>
-
-                      <td className="px-6 py-4">
-                        <div className="flex justify-center gap-2">
-                          <button className="rounded-xl bg-[#8e27a5]/10 p-3 text-[#8e27a5] transition hover:bg-[#8e27a5] hover:text-white">
-                            <FaEye />
-                          </button>
-
-                          <button className="rounded-xl bg-[#cf30a2]/10 p-3 text-[#cf30a2] transition hover:bg-[#cf30a2] hover:text-white">
+                        <div className="flex justify-center">
+                          <button
+                            onClick={() => setEditLevel(item)}
+                            className="rounded-xl bg-white/45 p-3 text-[#cf30a2] shadow-sm transition hover:bg-[#cf30a2] hover:text-white"
+                          >
                             <FaEdit />
                           </button>
                         </div>
@@ -235,11 +267,42 @@ export default function Level() {
                     </tr>
                   );
                 })}
+
+                {dataLevelPengajar.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan="6"
+                      className="px-6 py-8 text-center text-sm text-gray-500"
+                    >
+                      Belum ada data level pembelajaran.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
         </div>
       </div>
+
+      {showForm && (
+        <FormCatatLevel
+          onClose={() => setShowForm(false)}
+          onSubmit={handleTambahLevel}
+          siswaList={siswaBelumDicatat}
+          pengajarLogin={pengajarLogin}
+        />
+      )}
+
+      {editLevel && (
+        <FormCatatLevel
+          mode="edit"
+          dataEdit={editLevel}
+          onClose={() => setEditLevel(null)}
+          onSubmit={handleEditLevel}
+          siswaList={siswaData}
+          pengajarLogin={pengajarLogin}
+        />
+      )}
     </div>
   );
 }

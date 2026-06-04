@@ -8,21 +8,23 @@ export default function PengajarLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#fbeaf7]">
+    <div className="pengajar-bg relative min-h-screen overflow-hidden">
+      <div className="pointer-events-none fixed -left-32 top-10 h-80 w-80 rounded-full bg-[#cf30a2]/20 blur-3xl"></div>
+      <div className="pointer-events-none fixed right-0 top-0 h-96 w-96 rounded-full bg-[#ed6a45]/20 blur-3xl"></div>
+      <div className="pointer-events-none fixed bottom-0 left-1/3 h-96 w-96 rounded-full bg-[#6b1d7c]/15 blur-3xl"></div>
+
       <Sidebar setSidebarOpen={setSidebarOpen} />
 
       <main
-        className={`min-h-screen transition-all duration-300 ${
-          sidebarOpen ? "ml-60" : "ml-24"
+        className={`relative z-10 min-h-screen transition-[margin] duration-200 ease-out ${
+          sidebarOpen ? "ml-64" : "ml-20"
         }`}
       >
-        <div className="p-5">
-          <div className="rounded-[32px] bg-white p-5 shadow-xl">
-            <Header />
+        <div className="min-h-screen p-5">
+          <Header />
 
-            <div className="mt-5">
-              <Outlet />
-            </div>
+          <div className="mt-5">
+            <Outlet />
           </div>
         </div>
       </main>

@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { IoMdAdd } from "react-icons/io";
-import { FaEdit, FaTrash, FaUserGraduate, FaEye } from "react-icons/fa";
+import { FaEdit, FaTrash, FaUserGraduate } from "react-icons/fa";
 import { BsPeopleFill } from "react-icons/bs";
 
 import { siswaData } from "../../data/siswa";
 import { orangTuaData } from "../../data/orangTua";
+import { pengajarData } from "../../data/pengajar";
+import { levelPembelajaranData } from "../../data/levelPembelajaran";
 
 const FormTambahSiswa = React.lazy(() => import("./FormTambahSiswa"));
 
@@ -16,14 +18,12 @@ export default function Murid() {
   const [showForm, setShowForm] = useState(false);
   const [listSiswa, setListSiswa] = useState(siswaData);
   const [listOrangTua, setListOrangTua] = useState(orangTuaData);
+  const [listPengajar] = useState(pengajarData);
+  const [listLevel, setListLevel] = useState(levelPembelajaranData);
   const [editSiswa, setEditSiswa] = useState(null);
 
   const totalSiswa = listSiswa.length;
   const totalOrangTua = listOrangTua.length;
-
-  const getDetailOrangTua = (idOrangTua) => {
-    return listOrangTua.find((item) => item.id === Number(idOrangTua));
-  };
 
   const getOrangTua = (idOrangTua) => {
     const orangTua = listOrangTua.find(
@@ -31,6 +31,21 @@ export default function Murid() {
     );
 
     return orangTua ? orangTua.nama : "-";
+  };
+
+  const getIdPengajarSiswa = (idSiswa) => {
+    const level = listLevel.find((item) => item.idSiswa === Number(idSiswa));
+    return level ? level.idPengajar : "";
+  };
+
+  const getNamaPengajar = (idSiswa) => {
+    const idPengajar = getIdPengajarSiswa(idSiswa);
+
+    const pengajar = listPengajar.find(
+      (item) => item.id === Number(idPengajar),
+    );
+
+    return pengajar ? pengajar.nama : "-";
   };
 
   const handleTambahSiswa = (data) => {
@@ -48,8 +63,10 @@ export default function Murid() {
       idOrangTua = orangTuaBaru.id;
     }
 
+    const idSiswaBaru = listSiswa.length + 1;
+
     const siswaBaru = {
-      id: listSiswa.length + 1,
+      id: idSiswaBaru,
       nama: data.siswa.nama,
       jenisKelamin: data.siswa.jenisKelamin,
       tanggalLahir: data.siswa.tanggalLahir,
@@ -57,12 +74,21 @@ export default function Murid() {
       idOrangTua: idOrangTua,
     };
 
+    const levelBaru = {
+      id: listLevel.length + 1,
+      idSiswa: idSiswaBaru,
+      idPengajar: Number(data.siswa.idPengajar),
+      level: "Level 1",
+      keterangan: "Siswa baru mendaftar",
+    };
+
     setListSiswa([...listSiswa, siswaBaru]);
+    setListLevel([...listLevel, levelBaru]);
     setShowForm(false);
   };
 
   const handleEditSiswa = (data) => {
-    const hasilUpdate = listSiswa.map((siswa) => {
+    const hasilUpdateSiswa = listSiswa.map((siswa) => {
       if (siswa.id === data.siswa.id) {
         return {
           ...siswa,
@@ -77,7 +103,19 @@ export default function Murid() {
       return siswa;
     });
 
-    setListSiswa(hasilUpdate);
+    const hasilUpdateLevel = listLevel.map((level) => {
+      if (level.idSiswa === data.siswa.id) {
+        return {
+          ...level,
+          idPengajar: Number(data.siswa.idPengajar),
+        };
+      }
+
+      return level;
+    });
+
+    setListSiswa(hasilUpdateSiswa);
+    setListLevel(hasilUpdateLevel);
     setEditSiswa(null);
   };
 
@@ -88,9 +126,13 @@ export default function Murid() {
 
     if (!konfirmasi) return;
 
-    const hasilHapus = listSiswa.filter((siswa) => siswa.id !== idSiswa);
+    const hasilHapusSiswa = listSiswa.filter((siswa) => siswa.id !== idSiswa);
+    const hasilHapusLevel = listLevel.filter(
+      (level) => level.idSiswa !== idSiswa,
+    );
 
-    setListSiswa(hasilHapus);
+    setListSiswa(hasilHapusSiswa);
+    setListLevel(hasilHapusLevel);
   };
 
   return (
@@ -108,7 +150,7 @@ export default function Murid() {
             </h2>
 
             <p className="mt-1 text-sm text-gray-500">
-              Kelola data siswa dan orang tua yang terdaftar di SmartAHE.
+              Kelola data siswa, orang tua, dan pengajar siswa.
             </p>
           </div>
 
@@ -163,6 +205,16 @@ export default function Murid() {
               <div className="rounded-2xl bg-gradient-to-br from-[#FB773C] to-[#EB3678] p-4 text-2xl text-white shadow-md">
                 <FaUserGraduate />
               </div>
+
+              <div>
+                <p className="text-sm font-semibold text-gray-500">
+                  Total Pengajar
+                </p>
+
+                <h3 className="text-3xl font-bold text-[#180161]">
+                  {listPengajar.length}
+                </h3>
+              </div>
             </div>
           </div>
         </div>
@@ -185,7 +237,7 @@ export default function Murid() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1000px] text-left">
+            <table className="w-full min-w-[1100px] text-left">
               <thead>
                 <tr className="bg-white/35 text-sm text-[#180161] backdrop-blur-md">
                   <th className="px-6 py-4">No</th>
@@ -193,6 +245,7 @@ export default function Murid() {
                   <th className="px-6 py-4">Jenis Kelamin</th>
                   <th className="px-6 py-4">Tanggal Lahir</th>
                   <th className="px-6 py-4">Orang Tua</th>
+                  <th className="px-6 py-4">Pengajar</th>
                   <th className="px-6 py-4">Alamat</th>
                   <th className="px-6 py-4 text-center">Aksi</th>
                 </tr>
@@ -227,13 +280,22 @@ export default function Murid() {
                     </td>
 
                     <td className="px-6 py-4 text-gray-600">
+                      {getNamaPengajar(siswa.id)}
+                    </td>
+
+                    <td className="px-6 py-4 text-gray-600">
                       {siswa.alamat || "-"}
                     </td>
 
                     <td className="px-6 py-4">
                       <div className="flex justify-center gap-2">
                         <button
-                          onClick={() => setEditSiswa(siswa)}
+                          onClick={() =>
+                            setEditSiswa({
+                              ...siswa,
+                              idPengajar: getIdPengajarSiswa(siswa.id),
+                            })
+                          }
                           className="rounded-xl bg-white/45 p-3 text-[#EB3678] shadow-sm transition hover:bg-[#EB3678] hover:text-white"
                         >
                           <FaEdit />
@@ -260,8 +322,10 @@ export default function Murid() {
           onClose={() => setShowForm(false)}
           onSubmit={handleTambahSiswa}
           orangTuaList={listOrangTua}
+          pengajarList={listPengajar}
         />
       )}
+
       {editSiswa && (
         <FormTambahSiswa
           mode="edit"
@@ -269,6 +333,7 @@ export default function Murid() {
           onClose={() => setEditSiswa(null)}
           onSubmit={handleEditSiswa}
           orangTuaList={listOrangTua}
+          pengajarList={listPengajar}
         />
       )}
     </div>

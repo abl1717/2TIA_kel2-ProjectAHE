@@ -12,11 +12,11 @@ export default function Sidebar({ setSidebarOpen }) {
   ];
 
   const menuClass = ({ isActive }) =>
-    `flex items-center rounded-2xl px-4 py-4 transition-all duration-300
+    `flex h-14 items-center rounded-2xl px-3 transition-colors duration-100
     ${
       isActive
-        ? "bg-white text-[#471353] shadow-md font-bold"
-        : "text-white/90 hover:bg-white hover:text-[#471353] hover:shadow-md"
+        ? "bg-white/70 text-[#471353] font-bold shadow-md backdrop-blur-xl"
+        : "text-white/90 hover:bg-white/25 hover:text-white"
     }`;
 
   return (
@@ -24,33 +24,40 @@ export default function Sidebar({ setSidebarOpen }) {
       id="sidebar"
       onMouseEnter={() => setSidebarOpen(true)}
       onMouseLeave={() => setSidebarOpen(false)}
-      className="group fixed left-0 top-0 z-50 flex min-h-screen w-24 flex-col overflow-hidden rounded-r-[32px] bg-gradient-to-b from-[#6b1d7c] via-[#a52781] to-[#ed6a45] px-4 py-8 shadow-xl transition-all duration-300 hover:w-60"
+      className="group fixed left-0 top-0 z-50 flex h-screen w-20 flex-col overflow-hidden rounded-r-[34px] border-r border-white/25 bg-gradient-to-b from-[#6b1d7c]/90 via-[#a52781]/80 to-[#ed6a45]/75 px-3 py-5 shadow-[0_30px_90px_rgba(71,19,83,0.35)] backdrop-blur-2xl transition-[width] duration-150 ease-out hover:w-64"
     >
-      <div className="flex flex-col items-center">
-        <img
-          src="/logo.png"
-          alt="Logo"
-          className="h-16 w-16 rounded-full object-contain transition-all duration-300 group-hover:h-20 group-hover:w-20"
-        />
+      <div className="pointer-events-none absolute -left-20 top-8 h-48 w-48 rounded-full bg-white/15 blur-3xl"></div>
+      <div className="pointer-events-none absolute bottom-16 right-0 h-44 w-44 rounded-full bg-[#ed6a45]/25 blur-3xl"></div>
+      <div className="pointer-events-none absolute inset-0 bg-white/5"></div>
 
-        <div className="mt-3 w-full text-center text-white opacity-0 transition-all duration-300 group-hover:opacity-100">
+      <div className="relative z-10 flex flex-col items-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/35 bg-white/15 shadow-lg backdrop-blur-xl transition-[width,height] duration-150 group-hover:h-20 group-hover:w-20">
+          <img
+            src="/logo.png"
+            alt="Logo"
+            className="h-12 w-12 rounded-full object-contain transition-[width,height] duration-150 group-hover:h-14 group-hover:w-14"
+          />
+        </div>
+
+        <div className="mt-3 w-full text-center text-white opacity-0 transition-opacity duration-100 group-hover:opacity-100">
           <h1 className="whitespace-nowrap text-lg font-bold">SmartAHE</h1>
+
           <p className="whitespace-nowrap text-xs text-white/80">
             Pengajar Dashboard
           </p>
         </div>
       </div>
 
-      <nav className="mt-10">
-        <ul className="space-y-4">
+      <nav className="relative z-10 mt-8 flex-1">
+        <ul className="space-y-3">
           {menus.map((menu, index) => (
             <li key={index}>
               <NavLink to={menu.path} className={menuClass}>
-                <span className="flex min-w-10 justify-center text-2xl">
+                <span className="flex h-10 min-w-10 items-center justify-center text-xl">
                   {menu.icon}
                 </span>
 
-                <span className="ml-2 whitespace-nowrap text-sm opacity-0 transition-all duration-300 group-hover:opacity-100">
+                <span className="ml-3 whitespace-nowrap text-sm font-semibold opacity-0 transition-opacity duration-100 group-hover:opacity-100">
                   {menu.name}
                 </span>
               </NavLink>
@@ -59,16 +66,16 @@ export default function Sidebar({ setSidebarOpen }) {
         </ul>
       </nav>
 
-      <div className="mt-auto rounded-3xl bg-white/10 p-3 text-white backdrop-blur-sm transition-all duration-300 group-hover:p-4">
+      <div className="relative z-10 rounded-[24px] border border-white/25 bg-white/12 p-2 text-white shadow-lg backdrop-blur-xl">
         <button
           onClick={() => (window.location.href = "/")}
-          className="flex w-full items-center justify-center rounded-2xl bg-white/10 px-3 py-4 text-white transition-all duration-300 hover:bg-white hover:text-[#471353] group-hover:justify-start group-hover:px-4"
+          className="flex h-12 w-full items-center justify-center rounded-2xl bg-white/18 px-2 text-white transition-colors duration-100 hover:bg-white/65 hover:text-[#471353] group-hover:justify-start"
         >
-          <span className="flex min-w-10 justify-center text-xl">
+          <span className="flex h-9 min-w-9 items-center justify-center text-lg">
             <FaSignOutAlt />
           </span>
 
-          <span className="ml-2 hidden whitespace-nowrap text-sm font-semibold group-hover:block">
+          <span className="ml-3 hidden whitespace-nowrap text-sm font-bold group-hover:block">
             Keluar
           </span>
         </button>
