@@ -70,7 +70,7 @@ export default function Dashboard() {
             </h1>
 
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-gray-500">
-              Selamat datang, {orangTuaLogin.nama}. Lihat level pembelaajaran,
+              Selamat datang, {orangTuaLogin.nama}. Lihat level pembelajaran,
               modul aktif, pengajar, dan catatan perkembangan anak dalam satu
               halaman.
             </p>
