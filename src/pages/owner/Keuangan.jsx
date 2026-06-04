@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { IoMdAdd } from "react-icons/io";
 import {
   FaWallet,
@@ -6,16 +6,21 @@ import {
   FaArrowUp,
   FaEdit,
   FaTrash,
-  FaEye,
 } from "react-icons/fa";
 
 import { keuanganData } from "../../data/keuangan";
+
+const FormTambahKeuangan = React.lazy(() => import("./FormTambahKeuangan"));
 
 const PageHeader = React.lazy(
   () => import("../../components/owner/PageHeader"),
 );
 
-export default function Keuangan({ onAddClick }) {
+export default function Keuangan() {
+  const [showForm, setShowForm] = useState(false);
+  const [listKeuangan, setListKeuangan] = useState(keuanganData);
+  const [editKeuangan, setEditKeuangan] = useState(null);
+
   const formatRupiah = (angka) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -24,15 +29,28 @@ export default function Keuangan({ onAddClick }) {
     }).format(angka);
   };
 
-  const totalPemasukan = keuanganData
+  const totalPemasukan = listKeuangan
     .filter((item) => item.jenis === "Pemasukan")
     .reduce((total, item) => total + item.jumlah, 0);
 
-  const totalPengeluaran = keuanganData
+  const totalPengeluaran = listKeuangan
     .filter((item) => item.jenis === "Pengeluaran")
     .reduce((total, item) => total + item.jumlah, 0);
 
   const totalSaldo = totalPemasukan - totalPengeluaran;
+
+  const handleTambahKeuangan = (data) => {
+    const keuanganBaru = {
+      id: listKeuangan.length + 1,
+      tanggal: data.keuangan.tanggal,
+      keterangan: data.keuangan.keterangan,
+      jenis: data.keuangan.jenis,
+      jumlah: data.keuangan.jumlah,
+    };
+
+    setListKeuangan([...listKeuangan, keuanganBaru]);
+    setShowForm(false);
+  };
 
   return (
     <div
@@ -41,7 +59,7 @@ export default function Keuangan({ onAddClick }) {
     >
       <PageHeader title="Data Keuangan" breadcrumb="Keuangan" />
 
-      <div className="rounded-[36px] glass-panel p-6">
+      <div className="glass-panel rounded-[36px] p-6">
         <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
             <h2 className="text-2xl font-bold text-[#180161]">
@@ -53,7 +71,7 @@ export default function Keuangan({ onAddClick }) {
           </div>
 
           <button
-            onClick={onAddClick}
+            onClick={() => setShowForm(true)}
             className="flex w-fit items-center gap-2 rounded-2xl bg-gradient-to-r from-[#180161] via-[#4F1787] to-[#EB3678] px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:scale-105"
           >
             <IoMdAdd className="text-xl" />
@@ -62,7 +80,7 @@ export default function Keuangan({ onAddClick }) {
         </div>
 
         <div className="mb-6 grid gap-5 md:grid-cols-3">
-          <div className="rounded-[32px] glass-card p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01]">
+          <div className="glass-card rounded-[32px] p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01]">
             <div className="flex items-center gap-4">
               <div className="rounded-2xl bg-gradient-to-br from-[#180161] to-[#4F1787] p-4 text-2xl text-white shadow-md">
                 <FaWallet />
@@ -78,7 +96,7 @@ export default function Keuangan({ onAddClick }) {
             </div>
           </div>
 
-          <div className="rounded-[32px] glass-card p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01]">
+          <div className="glass-card rounded-[32px] p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01]">
             <div className="flex items-center gap-4">
               <div className="rounded-2xl bg-gradient-to-br from-[#EB3678] to-[#FB773C] p-4 text-2xl text-white shadow-md">
                 <FaArrowUp />
@@ -92,7 +110,7 @@ export default function Keuangan({ onAddClick }) {
             </div>
           </div>
 
-          <div className="rounded-[32px] glass-card p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01]">
+          <div className="glass-card rounded-[32px] p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01]">
             <div className="flex items-center gap-4">
               <div className="rounded-2xl bg-gradient-to-br from-[#FB773C] to-[#EB3678] p-4 text-2xl text-white shadow-md">
                 <FaArrowDown />
@@ -109,14 +127,14 @@ export default function Keuangan({ onAddClick }) {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-[32px] glass-card">
+        <div className="glass-card overflow-hidden rounded-[32px]">
           <div className="flex flex-col justify-between gap-4 border-b border-white/40 p-5 md:flex-row md:items-center">
             <div>
               <h3 className="text-xl font-bold text-[#180161]">
                 Daftar Keuangan
               </h3>
               <p className="mt-1 text-sm text-gray-500">
-                Data sementara menggunakan data statis dari keuangan.js.
+                Data sementara menggunakan state React.
               </p>
             </div>
 
@@ -136,12 +154,11 @@ export default function Keuangan({ onAddClick }) {
                   <th className="px-6 py-4">Keterangan</th>
                   <th className="px-6 py-4">Jenis</th>
                   <th className="px-6 py-4">Jumlah</th>
-                  <th className="px-6 py-4 text-center">Aksi</th>
                 </tr>
               </thead>
 
               <tbody>
-                {keuanganData.map((item, index) => (
+                {listKeuangan.map((item, index) => (
                   <tr
                     key={item.id}
                     className="border-b border-white/40 text-sm transition hover:bg-white/30"
@@ -177,29 +194,40 @@ export default function Keuangan({ onAddClick }) {
                     >
                       {formatRupiah(item.jumlah)}
                     </td>
-
-                    <td className="px-6 py-4">
-                      <div className="flex justify-center gap-2">
-                        <button className="rounded-xl bg-[#4F1787]/10 p-3 text-[#4F1787] transition hover:bg-[#4F1787] hover:text-white">
-                          <FaEye />
-                        </button>
-
-                        <button className="rounded-xl bg-[#EB3678]/10 p-3 text-[#EB3678] transition hover:bg-[#EB3678] hover:text-white">
-                          <FaEdit />
-                        </button>
-
-                        <button className="rounded-xl bg-[#FB773C]/10 p-3 text-[#FB773C] transition hover:bg-[#FB773C] hover:text-white">
-                          <FaTrash />
-                        </button>
-                      </div>
-                    </td>
                   </tr>
                 ))}
+
+                {listKeuangan.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan="6"
+                      className="px-6 py-8 text-center text-sm text-gray-500"
+                    >
+                      Belum ada data keuangan.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
         </div>
       </div>
+
+      {showForm && (
+        <FormTambahKeuangan
+          onClose={() => setShowForm(false)}
+          onSubmit={handleTambahKeuangan}
+        />
+      )}
+
+      {editKeuangan && (
+        <FormTambahKeuangan
+          mode="edit"
+          dataEdit={editKeuangan}
+          onClose={() => setEditKeuangan(null)}
+          onSubmit={handleEditKeuangan}
+        />
+      )}
     </div>
   );
 }

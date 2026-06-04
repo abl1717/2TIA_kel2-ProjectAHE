@@ -1,27 +1,88 @@
-import React from "react";
+import React, { useState } from "react";
 import { IoMdAdd } from "react-icons/io";
-import { FaEdit, FaTrash, FaEye, FaChalkboardTeacher } from "react-icons/fa";
+import { FaEdit, FaTrash, FaChalkboardTeacher } from "react-icons/fa";
 
 import { pengajarData } from "../../data/pengajar";
 import { levelPembelajaranData } from "../../data/levelPembelajaran";
+
+const FormTambahPengajar = React.lazy(() => import("./FormTambahPengajar"));
 
 const PageHeader = React.lazy(
   () => import("../../components/owner/PageHeader"),
 );
 
-export default function Pengajar({ onAddClick }) {
-  const totalPengajar = pengajarData.length;
+export default function Pengajar() {
+  const [showForm, setShowForm] = useState(false);
+  const [listPengajar, setListPengajar] = useState(pengajarData);
+  const [editPengajar, setEditPengajar] = useState(null);
 
-  const pengajarAktif = pengajarData.filter((pengajar) => {
-    return pengajar.status === "Aktif";
-  }).length;
+  const totalPengajar = listPengajar.length;
 
   const totalBimbingan = levelPembelajaranData.length;
+
+  const pengajarMemilikiMurid = listPengajar.filter((pengajar) => {
+    return levelPembelajaranData.some((level) => {
+      return level.idPengajar === pengajar.id;
+    });
+  }).length;
 
   const getJumlahMurid = (idPengajar) => {
     return levelPembelajaranData.filter((level) => {
       return level.idPengajar === idPengajar;
     }).length;
+  };
+
+  const handleTambahPengajar = (data) => {
+    const pengajarBaru = {
+      id: listPengajar.length + 1,
+      nama: data.pengajar.nama,
+      noHp: data.pengajar.noHp,
+      alamat: data.pengajar.alamat,
+    };
+
+    setListPengajar([...listPengajar, pengajarBaru]);
+    setShowForm(false);
+  };
+
+  const handleEditPengajar = (data) => {
+    const hasilUpdate = listPengajar.map((pengajar) => {
+      if (pengajar.id === data.pengajar.id) {
+        return {
+          ...pengajar,
+          nama: data.pengajar.nama,
+          noHp: data.pengajar.noHp,
+          alamat: data.pengajar.alamat,
+        };
+      }
+
+      return pengajar;
+    });
+
+    setListPengajar(hasilUpdate);
+    setEditPengajar(null);
+  };
+
+  const handleHapusPengajar = (idPengajar) => {
+    const jumlahMurid = getJumlahMurid(idPengajar);
+
+    if (jumlahMurid > 0) {
+      alert(
+        "Pengajar ini masih memiliki data bimbingan murid. Data tidak bisa dihapus.",
+      );
+      return;
+    }
+
+    const konfirmasi = window.confirm(
+      "Apakah Anda yakin ingin menghapus data pengajar ini?",
+    );
+
+    if (!konfirmasi) return;
+
+    const hasilHapus = listPengajar.filter((pengajar) => {
+      return pengajar.id !== idPengajar;
+    });
+
+    setListPengajar(hasilHapus);
   };
 
   return (
@@ -44,7 +105,7 @@ export default function Pengajar({ onAddClick }) {
           </div>
 
           <button
-            onClick={onAddClick}
+            onClick={() => setShowForm(true)}
             className="flex w-fit items-center gap-2 rounded-2xl bg-gradient-to-r from-[#180161] via-[#4F1787] to-[#EB3678] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#4F1787]/25 transition hover:scale-105"
           >
             <IoMdAdd className="text-xl" />
@@ -79,11 +140,11 @@ export default function Pengajar({ onAddClick }) {
 
               <div>
                 <p className="text-sm font-semibold text-gray-500">
-                  Pengajar Aktif
+                  Pengajar Membimbing
                 </p>
 
                 <h3 className="text-3xl font-bold text-[#180161]">
-                  {pengajarAktif}
+                  {pengajarMemilikiMurid}
                 </h3>
               </div>
             </div>
@@ -116,7 +177,7 @@ export default function Pengajar({ onAddClick }) {
               </h3>
 
               <p className="mt-1 text-sm text-gray-500">
-                Data sementara menggunakan data statis dari pengajar.js.
+                Data sementara menggunakan state React.
               </p>
             </div>
 
@@ -128,7 +189,7 @@ export default function Pengajar({ onAddClick }) {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-left">
+            <table className="w-full min-w-[850px] text-left">
               <thead>
                 <tr className="bg-white/35 text-sm text-[#180161] backdrop-blur-md">
                   <th className="px-6 py-4">No</th>
@@ -136,13 +197,12 @@ export default function Pengajar({ onAddClick }) {
                   <th className="px-6 py-4">No HP</th>
                   <th className="px-6 py-4">Alamat</th>
                   <th className="px-6 py-4">Jumlah Murid</th>
-                  <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4 text-center">Aksi</th>
                 </tr>
               </thead>
 
               <tbody>
-                {pengajarData.map((pengajar, index) => (
+                {listPengajar.map((pengajar, index) => (
                   <tr
                     key={pengajar.id}
                     className="border-b border-white/40 text-sm transition hover:bg-white/35"
@@ -170,39 +230,56 @@ export default function Pengajar({ onAddClick }) {
                     </td>
 
                     <td className="px-6 py-4">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-bold ${
-                          pengajar.status === "Aktif"
-                            ? "bg-green-500/10 text-green-600"
-                            : "bg-[#FB773C]/10 text-[#FB773C]"
-                        }`}
-                      >
-                        {pengajar.status}
-                      </span>
-                    </td>
-
-                    <td className="px-6 py-4">
                       <div className="flex justify-center gap-2">
-                        <button className="rounded-xl bg-white/45 p-3 text-[#4F1787] shadow-sm transition hover:bg-[#4F1787] hover:text-white">
-                          <FaEye />
-                        </button>
-
-                        <button className="rounded-xl bg-white/45 p-3 text-[#EB3678] shadow-sm transition hover:bg-[#EB3678] hover:text-white">
+                        <button
+                          onClick={() => setEditPengajar(pengajar)}
+                          className="rounded-xl bg-white/45 p-3 text-[#EB3678] shadow-sm transition hover:bg-[#EB3678] hover:text-white"
+                        >
                           <FaEdit />
                         </button>
 
-                        <button className="rounded-xl bg-white/45 p-3 text-[#FB773C] shadow-sm transition hover:bg-[#FB773C] hover:text-white">
+                        <button
+                          onClick={() => handleHapusPengajar(pengajar.id)}
+                          className="rounded-xl bg-white/45 p-3 text-[#FB773C] shadow-sm transition hover:bg-[#FB773C] hover:text-white"
+                        >
                           <FaTrash />
                         </button>
                       </div>
                     </td>
                   </tr>
                 ))}
+
+                {listPengajar.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan="6"
+                      className="px-6 py-8 text-center text-sm text-gray-500"
+                    >
+                      Belum ada data pengajar.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
         </div>
       </div>
+
+      {showForm && (
+        <FormTambahPengajar
+          onClose={() => setShowForm(false)}
+          onSubmit={handleTambahPengajar}
+        />
+      )}
+
+      {editPengajar && (
+        <FormTambahPengajar
+          mode="edit"
+          dataEdit={editPengajar}
+          onClose={() => setEditPengajar(null)}
+          onSubmit={handleEditPengajar}
+        />
+      )}
     </div>
   );
 }
