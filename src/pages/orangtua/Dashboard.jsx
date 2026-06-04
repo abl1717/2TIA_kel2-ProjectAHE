@@ -3,11 +3,6 @@ import {
   FaChild,
   FaChalkboardTeacher,
   FaArrowRight,
-  FaStar,
-  FaMapMarkerAlt,
-  FaEnvelope,
-  FaPhoneAlt,
-  FaUserGraduate,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import React from "react";
@@ -155,7 +150,10 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <section id="anak" className="rounded-[44px] bg-white p-8 shadow-md scroll-mt-32">
+      <section
+        id="anak"
+        className="rounded-[44px] bg-white p-8 shadow-md scroll-mt-32"
+      >
         <div className="mb-8">
           <span className="text-sm font-bold text-[#E5989B]">DATA ANAK</span>
           <h2 className="mt-2 text-3xl font-extrabold text-[#6D6875]">
