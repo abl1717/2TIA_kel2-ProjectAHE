@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import React, { useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { ImSpinner2 } from "react-icons/im";
 import { BsFillExclamationDiamondFill } from "react-icons/bs";
@@ -66,7 +66,7 @@ export default function Login() {
   const loadingInfo = loading ? (
     <div className="mb-5 flex items-center rounded-2xl bg-[#4F1787]/10 p-4 text-sm font-medium text-[#4F1787]">
       <ImSpinner2 className="me-2 animate-spin" />
-      Mohon Tunggu...
+      Mohon Tunggu ya!
     </div>
   ) : null;
 
