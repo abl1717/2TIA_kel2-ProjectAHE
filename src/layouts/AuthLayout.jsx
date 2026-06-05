@@ -65,7 +65,7 @@ export default function AuthLayout() {
             <Outlet />
 
             <div className="mt-6 text-center text-sm text-gray-500">
-              © 2026 SmartAHE. Hak cipta dilindungi.
+              © 2026 SmartAHE. Hak cipta dilindungi. Tess
             </div>
           </div>
         </div>
