@@ -18,9 +18,16 @@ export default function Level() {
 
   const siswa = siswaData.find((item) => item.id === Number(id));
 
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, []);
+
   if (!siswa) {
     return (
-      <div className="rounded-3xl bg-white p-8 text-center shadow-md">
+      <div className="orangtua-glass-panel rounded-3xl p-8 text-center text-[#6D6875]">
         Data siswa tidak ditemukan.
       </div>
     );
@@ -36,22 +43,21 @@ export default function Level() {
 
   const modul = modulData.find((item) => item.level === levelData?.level);
 
-  useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  }, []);
-
   const getProgress = (level) => {
     switch (level) {
       case "Level 1":
-        return 25;
+        return 15;
       case "Level 2":
-        return 50;
+        return 30;
       case "Level 3":
-        return 75;
+        return 45;
       case "Level 4":
+        return 60;
+      case "Level 5":
+        return 75;
+      case "Level 6":
+        return 90;
+      case "Level 7":
         return 100;
       default:
         return 0;
@@ -64,16 +70,19 @@ export default function Level() {
     <div className="space-y-6">
       <button
         onClick={() => navigate("/orangtua/dashboard")}
-        className="flex items-center gap-2 rounded-2xl bg-white px-5 py-3 font-semibold text-[#B5838D] shadow-md transition hover:scale-105"
+        className="orangtua-glass-input flex items-center gap-2 rounded-2xl px-5 py-3 font-semibold text-[#B5838D] transition hover:scale-105 hover:bg-white/70"
       >
         <FaArrowLeft />
         Kembali
       </button>
 
-      <section className="rounded-[40px] bg-white p-8 shadow-md">
-        <div className="grid gap-8 md:grid-cols-2">
+      <section className="orangtua-glass-panel relative overflow-hidden rounded-[40px] p-8">
+        <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-[#FFB4A2]/20 blur-3xl"></div>
+        <div className="pointer-events-none absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-[#B5838D]/20 blur-3xl"></div>
+
+        <div className="relative z-10 grid gap-8 md:grid-cols-2">
           <div>
-            <p className="mb-3 inline-block rounded-full bg-[#E5989B]/10 px-4 py-2 text-sm font-bold text-[#E5989B]">
+            <p className="orangtua-glass-input mb-3 inline-block rounded-full px-4 py-2 text-sm font-bold text-[#E5989B]">
               Detail Level Pembelajaran
             </p>
 
@@ -86,7 +95,7 @@ export default function Level() {
             </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-3xl bg-[#FFF1EB] p-5">
+              <div className="orangtua-glass-card rounded-3xl p-5">
                 <FaUserGraduate className="text-3xl text-[#B5838D]" />
 
                 <p className="mt-3 text-sm text-gray-500">Level Saat Ini</p>
@@ -96,7 +105,7 @@ export default function Level() {
                 </h3>
               </div>
 
-              <div className="rounded-3xl bg-[#FFE5D9] p-5">
+              <div className="orangtua-glass-card rounded-3xl p-5">
                 <FaBookOpen className="text-3xl text-[#FFB4A2]" />
 
                 <p className="mt-3 text-sm text-gray-500">Modul</p>
@@ -106,7 +115,7 @@ export default function Level() {
                 </h3>
               </div>
 
-              <div className="rounded-3xl bg-[#FFF1EB] p-5">
+              <div className="orangtua-glass-card rounded-3xl p-5">
                 <FaChalkboardTeacher className="text-3xl text-[#B5838D]" />
 
                 <p className="mt-3 text-sm text-gray-500">Pengajar</p>
@@ -116,46 +125,50 @@ export default function Level() {
                 </h3>
               </div>
 
-              <div className="rounded-3xl bg-[#FFE5D9] p-5">
-                <p className="text-sm text-gray-500">Status Belajar</p>
+              <div className="orangtua-glass-card rounded-3xl p-5">
+                <p className="text-sm text-gray-500">Status Data</p>
 
                 <h3 className="mt-3 text-xl font-bold text-[#6D6875]">
-                  {levelData?.status || "-"}
+                  {levelData ? "Sudah Dicatat" : "Belum Dicatat"}
                 </h3>
               </div>
             </div>
           </div>
 
-          <div className="rounded-[32px] bg-gradient-to-br from-[#B5838D] via-[#E5989B] to-[#FFB4A2] p-8 text-white">
+          <div className="rounded-[32px] bg-gradient-to-br from-[#B5838D]/90 via-[#E5989B]/85 to-[#FFB4A2]/80 p-8 text-white shadow-xl backdrop-blur-xl">
             <p className="text-sm text-white/80">Progress Pembelajaran</p>
 
             <h2 className="mt-3 text-6xl font-extrabold">{progress}%</h2>
 
             <div className="mt-6 h-4 rounded-full bg-white/20">
               <div
-                className="h-4 rounded-full bg-white"
+                className="h-4 rounded-full bg-white transition-all duration-500"
                 style={{ width: `${progress}%` }}
               ></div>
             </div>
 
-            <p className="mt-6 text-white/90">{levelData?.kemampuan}</p>
+            <p className="mt-6 text-white/90">
+              {levelData
+                ? `Anak berada pada ${levelData.level}.`
+                : "Level pembelajaran anak belum dicatat oleh pengajar."}
+            </p>
           </div>
         </div>
       </section>
 
-      <section className="rounded-[36px] bg-white p-8 shadow-md">
+      <section className="orangtua-glass-panel rounded-[36px] p-8">
         <h2 className="text-2xl font-bold text-[#6D6875]">
           Catatan Perkembangan
         </h2>
 
-        <div className="mt-4 rounded-3xl bg-[#FFF1EB] p-6">
+        <div className="orangtua-glass-card mt-4 rounded-3xl p-6">
           <p className="leading-relaxed text-gray-600">
-            {levelData?.kemampuan || "Belum ada catatan perkembangan."}
+            {levelData?.keterangan || "Belum ada catatan perkembangan."}
           </p>
         </div>
 
         <p className="mt-4 text-sm text-gray-400">
-          Update terakhir : {levelData?.tanggalUpdate || "-"}
+          Data ditampilkan berdasarkan catatan level pembelajaran terbaru.
         </p>
       </section>
     </div>
