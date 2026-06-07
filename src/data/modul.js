@@ -23,4 +23,22 @@ export const modulData = [
     level: "Level 4",
     stok: 20,
   },
+  {
+    id: 5,
+    namaModul: "Modul Level 5",
+    level: "Level 5",
+    stok: 30,
+  },
+  {
+    id: 6,
+    namaModul: "Modul Level 6",
+    level: "Level 6",
+    stok: 40,
+  },
+  {
+    id: 7,
+    namaModul: "Modul Level 7",
+    level: "Level 7",
+    stok: 50,
+  },
 ];
