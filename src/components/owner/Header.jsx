@@ -1,22 +1,16 @@
-import { FaBell, FaSearch, FaBars } from "react-icons/fa";
+import { FaBell } from "react-icons/fa";
 
 export default function Header() {
   return (
     <header className="sticky top-0 z-30 mb-4 flex items-center justify-between rounded-b-[32px] border border-white/60 bg-white/45 px-6 py-5 shadow-[0_18px_45px_rgba(24,1,97,0.10)] backdrop-blur-2xl">
-      <div className="flex items-center gap-5">
-        <button className="rounded-2xl border border-white/70 bg-white/45 p-4 text-[#4F1787] shadow-sm backdrop-blur-xl transition hover:bg-white/65 hover:shadow-md">
-          <FaBars />
-        </button>
+      <div className="flex flex-col">
+        <h2 className="text-xl font-bold text-[#180161]">
+          SmartAHE Management System
+        </h2>
 
-        <div className="relative hidden w-[520px] md:block">
-          <input
-            className="glass-input w-full rounded-2xl px-6 py-4 pr-12 text-sm text-[#180161] outline-none transition placeholder:text-gray-400 focus:border-[#4F1787]/50 focus:ring-4 focus:ring-[#4F1787]/10"
-            type="text"
-            placeholder="Cari murid, modul, pengajar..."
-          />
-
-          <FaSearch className="absolute right-5 top-1/2 -translate-y-1/2 text-[#4F1787]" />
-        </div>
+        <p className="text-sm text-gray-500">
+          Portal Manajemen Bimbingan Belajar Anak Hebat
+        </p>
       </div>
 
       <div className="flex items-center gap-5">

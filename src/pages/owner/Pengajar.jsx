@@ -15,6 +15,7 @@ export default function Pengajar() {
   const [showForm, setShowForm] = useState(false);
   const [listPengajar, setListPengajar] = useState(pengajarData);
   const [editPengajar, setEditPengajar] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const totalPengajar = listPengajar.length;
 
@@ -31,6 +32,22 @@ export default function Pengajar() {
       return level.idPengajar === idPengajar;
     }).length;
   };
+
+  const _searchTerm = searchTerm.toLowerCase();
+
+  const filteredPengajar = listPengajar.filter((pengajar) => {
+    const namaPengajar = pengajar.nama.toLowerCase();
+    const noHp = pengajar.noHp.toLowerCase();
+    const alamat = pengajar.alamat.toLowerCase();
+    const jumlahMurid = String(getJumlahMurid(pengajar.id)).toLowerCase();
+
+    return (
+      namaPengajar.includes(_searchTerm) ||
+      noHp.includes(_searchTerm) ||
+      alamat.includes(_searchTerm) ||
+      jumlahMurid.includes(_searchTerm)
+    );
+  });
 
   const handleTambahPengajar = (data) => {
     const pengajarBaru = {
@@ -183,7 +200,10 @@ export default function Pengajar() {
 
             <input
               type="text"
-              placeholder="Cari nama pengajar..."
+              name="searchTerm"
+              placeholder="Cari nama, no HP, alamat, atau jumlah murid..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="glass-input rounded-2xl px-5 py-3 text-sm text-[#180161] outline-none placeholder:text-gray-400 focus:border-[#4F1787]/50 focus:ring-4 focus:ring-[#4F1787]/10"
             />
           </div>
@@ -202,7 +222,7 @@ export default function Pengajar() {
               </thead>
 
               <tbody>
-                {listPengajar.map((pengajar, index) => (
+                {filteredPengajar.map((pengajar, index) => (
                   <tr
                     key={pengajar.id}
                     className="border-b border-white/40 text-sm transition hover:bg-white/35"
@@ -249,13 +269,13 @@ export default function Pengajar() {
                   </tr>
                 ))}
 
-                {listPengajar.length === 0 && (
+                {filteredPengajar.length === 0 && (
                   <tr>
                     <td
                       colSpan="6"
                       className="px-6 py-8 text-center text-sm text-gray-500"
                     >
-                      Belum ada data pengajar.
+                      Data pengajar tidak ditemukan.
                     </td>
                   </tr>
                 )}

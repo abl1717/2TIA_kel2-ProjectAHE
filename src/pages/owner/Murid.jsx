@@ -22,6 +22,8 @@ export default function Murid() {
   const [listLevel, setListLevel] = useState(levelPembelajaranData);
   const [editSiswa, setEditSiswa] = useState(null);
 
+  const [searchTerm, setSearchTerm] = useState("");
+
   const totalSiswa = listSiswa.length;
   const totalOrangTua = listOrangTua.length;
 
@@ -47,6 +49,26 @@ export default function Murid() {
 
     return pengajar ? pengajar.nama : "-";
   };
+
+  const _searchTerm = searchTerm.toLowerCase();
+
+  const filteredSiswa = listSiswa.filter((siswa) => {
+    const namaSiswa = siswa.nama.toLowerCase();
+    const jenisKelamin = siswa.jenisKelamin.toLowerCase();
+    const tanggalLahir = siswa.tanggalLahir.toLowerCase();
+    const alamat = siswa.alamat.toLowerCase();
+    const namaOrangTua = getOrangTua(siswa.idOrangTua).toLowerCase();
+    const namaPengajar = getNamaPengajar(siswa.id).toLowerCase();
+
+    return (
+      namaSiswa.includes(_searchTerm) ||
+      jenisKelamin.includes(_searchTerm) ||
+      tanggalLahir.includes(_searchTerm) ||
+      alamat.includes(_searchTerm) ||
+      namaOrangTua.includes(_searchTerm) ||
+      namaPengajar.includes(_searchTerm)
+    );
+  });
 
   const handleTambahSiswa = (data) => {
     let idOrangTua = Number(data.siswa.idOrangTua);
@@ -231,7 +253,10 @@ export default function Murid() {
 
             <input
               type="text"
-              placeholder="Cari nama siswa..."
+              name="searchTerm"
+              placeholder="Cari siswa, orang tua, atau pengajar..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="glass-input rounded-2xl px-5 py-3 text-sm text-[#180161] outline-none placeholder:text-gray-400 focus:border-[#4F1787]/50 focus:ring-4 focus:ring-[#4F1787]/10"
             />
           </div>
@@ -252,7 +277,7 @@ export default function Murid() {
               </thead>
 
               <tbody>
-                {listSiswa.map((siswa, index) => (
+                {filteredSiswa.map((siswa, index) => (
                   <tr
                     key={siswa.id}
                     className="border-b border-white/40 text-sm transition hover:bg-white/35"
@@ -311,6 +336,17 @@ export default function Murid() {
                     </td>
                   </tr>
                 ))}
+
+                {filteredSiswa.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan="8"
+                      className="px-6 py-8 text-center text-sm text-gray-500"
+                    >
+                      Data siswa tidak ditemukan.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

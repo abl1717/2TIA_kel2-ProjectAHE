@@ -21,6 +21,8 @@ export default function Level() {
   const [showForm, setShowForm] = useState(false);
   const [listLevel, setListLevel] = useState(levelPembelajaranData);
   const [editLevel, setEditLevel] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterLevel, setFilterLevel] = useState("");
 
   const pengajarLogin = pengajarData.find((pengajar) => {
     return pengajar.nama === "Bu Rina";
@@ -84,6 +86,26 @@ export default function Level() {
     setListLevel(hasilUpdate);
     setEditLevel(null);
   };
+
+  const filteredLevel = dataLevelPengajar.filter((item) => {
+    const siswa = getSiswa(item.idSiswa);
+    const modul = getModul(item.level);
+
+    const namaSiswa = siswa?.nama?.toLowerCase() || "";
+    const level = item.level.toLowerCase();
+    const namaModul = modul?.namaModul?.toLowerCase() || "";
+    const keterangan = item.keterangan?.toLowerCase() || "";
+
+    const cocokSearch =
+      namaSiswa.includes(searchTerm.toLowerCase()) ||
+      level.includes(searchTerm.toLowerCase()) ||
+      namaModul.includes(searchTerm.toLowerCase()) ||
+      keterangan.includes(searchTerm.toLowerCase());
+
+    const cocokFilter = filterLevel === "" || item.level === filterLevel;
+
+    return cocokSearch && cocokFilter;
+  });
 
   return (
     <div className="pengajar-bg min-h-screen rounded-[36px] p-5">
@@ -184,19 +206,25 @@ export default function Level() {
             <div className="flex flex-col gap-3 md:flex-row">
               <input
                 type="text"
-                placeholder="Cari nama siswa..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Cari siswa, level, modul..."
                 className="pengajar-glass-input rounded-2xl px-5 py-3 text-sm text-[#240a29] outline-none placeholder:text-gray-400 focus:border-[#cf30a2] focus:ring-4 focus:ring-[#cf30a2]/10"
               />
 
-              <select className="pengajar-glass-input rounded-2xl px-5 py-3 text-sm text-[#240a29] outline-none focus:border-[#cf30a2]">
-                <option>Semua Level</option>
-                <option>Level 1</option>
-                <option>Level 2</option>
-                <option>Level 3</option>
-                <option>Level 4</option>
-                <option>Level 5</option>
-                <option>Level 6</option>
-                <option>Level 7</option>
+              <select
+                value={filterLevel}
+                onChange={(e) => setFilterLevel(e.target.value)}
+                className="pengajar-glass-input rounded-2xl px-5 py-3 text-sm text-[#240a29] outline-none focus:border-[#cf30a2]"
+              >
+                <option value="">Semua Level</option>
+                <option value="Level 1">Level 1</option>
+                <option value="Level 2">Level 2</option>
+                <option value="Level 3">Level 3</option>
+                <option value="Level 4">Level 4</option>
+                <option value="Level 5">Level 5</option>
+                <option value="Level 6">Level 6</option>
+                <option value="Level 7">Level 7</option>
               </select>
             </div>
           </div>
@@ -215,7 +243,7 @@ export default function Level() {
               </thead>
 
               <tbody>
-                {dataLevelPengajar.map((item, index) => {
+                {filteredLevel.map((item, index) => {
                   const siswa = getSiswa(item.idSiswa);
                   const modul = getModul(item.level);
 
@@ -268,13 +296,13 @@ export default function Level() {
                   );
                 })}
 
-                {dataLevelPengajar.length === 0 && (
+                {filteredLevel.length === 0 && (
                   <tr>
                     <td
                       colSpan="6"
                       className="px-6 py-8 text-center text-sm text-gray-500"
                     >
-                      Belum ada data level pembelajaran.
+                      Data level pembelajaran tidak ditemukan.
                     </td>
                   </tr>
                 )}
