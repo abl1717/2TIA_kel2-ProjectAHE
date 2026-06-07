@@ -4,6 +4,7 @@ import axios from "axios";
 import { ImSpinner2 } from "react-icons/im";
 import { BsFillExclamationDiamondFill } from "react-icons/bs";
 import { FaChalkboardTeacher, FaEye, FaEyeSlash } from "react-icons/fa";
+import { userData } from "../../data/user";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -25,35 +26,35 @@ export default function Login() {
     });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     setLoading(true);
     setError("");
 
-    axios
-      .post("https://dummyjson.com/user/login", {
-        username: dataForm.email,
-        password: dataForm.password,
-      })
-      .then((response) => {
-        if (response.status !== 200) {
-          setError(response.data.message);
-          return;
-        }
+    const user = userData.find((item) => {
+      return (
+        item.email === dataForm.email && item.password === dataForm.password
+      );
+    });
 
-        navigate("/owner/dashboard");
-      })
-      .catch((err) => {
-        if (err.response) {
-          setError(err.response.data.message || "An error occurred");
-        } else {
-          setError(err.message || "An unknown error occurred");
-        }
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    if (!user) {
+      setError("Email atau password salah.");
+      setLoading(false);
+      return;
+    }
+
+    localStorage.setItem("userLogin", JSON.stringify(user));
+
+    if (user.role === "owner") {
+      navigate("/owner/dashboard");
+    } else if (user.role === "pengajar") {
+      navigate("/pengajar/dashboard");
+    } else if (user.role === "orangtua") {
+      navigate("/orangtua/dashboard");
+    }
+
+    setLoading(false);
   };
 
   const errorInfo = error ? (

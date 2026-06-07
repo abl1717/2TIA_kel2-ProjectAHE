@@ -13,6 +13,11 @@ export default function FormTambahPengajar({
     alamat: "",
   });
 
+  const [formAkunPengajar, setFormAkunPengajar] = useState({
+    email: "",
+    password: "",
+  });
+
   useEffect(() => {
     if (mode === "edit" && dataEdit) {
       setFormPengajar({
@@ -33,6 +38,15 @@ export default function FormTambahPengajar({
     });
   };
 
+  const handleAkunPengajarChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormAkunPengajar({
+      ...formAkunPengajar,
+      [name]: value,
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -41,8 +55,17 @@ export default function FormTambahPengajar({
       return;
     }
 
+    if (
+      mode === "tambah" &&
+      (!formAkunPengajar.email || !formAkunPengajar.password)
+    ) {
+      alert("Lengkapi email dan password akun pengajar.");
+      return;
+    }
+
     onSubmit({
       pengajar: formPengajar,
+      akunPengajar: formAkunPengajar,
     });
   };
 
@@ -58,7 +81,7 @@ export default function FormTambahPengajar({
             <p className="mt-1 text-sm text-gray-500">
               {mode === "edit"
                 ? "Ubah data pengajar yang sudah terdaftar."
-                : "Tambahkan data pengajar baru ke dalam sistem SmartAHE."}
+                : "Tambahkan data pengajar dan buat akun login pengajar."}
             </p>
           </div>
 
@@ -104,6 +127,38 @@ export default function FormTambahPengajar({
               ></textarea>
             </div>
           </div>
+
+          {mode === "tambah" && (
+            <div className="glass-card rounded-[28px] p-5">
+              <h3 className="mb-4 font-bold text-[#180161]">
+                Akun Login Pengajar
+              </h3>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email login pengajar"
+                  value={formAkunPengajar.email}
+                  onChange={handleAkunPengajarChange}
+                  className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                />
+
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Password login pengajar"
+                  value={formAkunPengajar.password}
+                  onChange={handleAkunPengajarChange}
+                  className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                />
+              </div>
+
+              <p className="mt-3 text-xs text-gray-500">
+                Email dan password ini digunakan pengajar untuk login ke sistem.
+              </p>
+            </div>
+          )}
 
           <div className="flex justify-end gap-3">
             <button

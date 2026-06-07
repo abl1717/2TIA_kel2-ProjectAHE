@@ -26,6 +26,11 @@ export default function FormTambahSiswa({
     alamat: "",
   });
 
+  const [formAkunOrangTua, setFormAkunOrangTua] = useState({
+    email: "",
+    password: "",
+  });
+
   useEffect(() => {
     if (mode === "edit" && dataEdit) {
       setFormSiswa({
@@ -60,6 +65,15 @@ export default function FormTambahSiswa({
     });
   };
 
+  const handleAkunOrangTuaChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormAkunOrangTua({
+      ...formAkunOrangTua,
+      [name]: value,
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -73,6 +87,14 @@ export default function FormTambahSiswa({
       (!formOrangTua.nama || !formOrangTua.noHp || !formOrangTua.alamat)
     ) {
       alert("Lengkapi data orang tua baru.");
+      return;
+    }
+
+    if (
+      tipeOrangTua === "baru" &&
+      (!formAkunOrangTua.email || !formAkunOrangTua.password)
+    ) {
+      alert("Lengkapi email dan password akun orang tua.");
       return;
     }
 
@@ -95,6 +117,7 @@ export default function FormTambahSiswa({
         idPengajar: Number(formSiswa.idPengajar),
       },
       orangTua: formOrangTua,
+      akunOrangTua: formAkunOrangTua,
     });
   };
 
@@ -166,33 +189,72 @@ export default function FormTambahSiswa({
                 ))}
               </select>
             ) : (
-              <div className="grid gap-4 md:grid-cols-3">
-                <input
-                  type="text"
-                  name="nama"
-                  placeholder="Nama orang tua"
-                  value={formOrangTua.nama}
-                  onChange={handleOrangTuaChange}
-                  className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
-                />
+              <div className="space-y-5">
+                <div>
+                  <h4 className="mb-3 text-sm font-bold text-[#180161]">
+                    Profil Orang Tua
+                  </h4>
 
-                <input
-                  type="text"
-                  name="noHp"
-                  placeholder="No HP"
-                  value={formOrangTua.noHp}
-                  onChange={handleOrangTuaChange}
-                  className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
-                />
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <input
+                      type="text"
+                      name="nama"
+                      placeholder="Nama orang tua"
+                      value={formOrangTua.nama}
+                      onChange={handleOrangTuaChange}
+                      className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                    />
 
-                <input
-                  type="text"
-                  name="alamat"
-                  placeholder="Alamat orang tua"
-                  value={formOrangTua.alamat}
-                  onChange={handleOrangTuaChange}
-                  className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
-                />
+                    <input
+                      type="text"
+                      name="noHp"
+                      placeholder="No HP"
+                      value={formOrangTua.noHp}
+                      onChange={handleOrangTuaChange}
+                      className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                    />
+
+                    <input
+                      type="text"
+                      name="alamat"
+                      placeholder="Alamat orang tua"
+                      value={formOrangTua.alamat}
+                      onChange={handleOrangTuaChange}
+                      className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="mb-3 text-sm font-bold text-[#180161]">
+                    Akun Login Orang Tua
+                  </h4>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="Email login orang tua"
+                      value={formAkunOrangTua.email}
+                      onChange={handleAkunOrangTuaChange}
+                      className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                    />
+
+                    <input
+                      type="password"
+                      name="password"
+                      placeholder="Password login orang tua"
+                      value={formAkunOrangTua.password}
+                      onChange={handleAkunOrangTuaChange}
+                      className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                    />
+                  </div>
+
+                  <p className="mt-3 text-xs text-gray-500">
+                    Email dan password ini digunakan orang tua untuk login ke
+                    sistem.
+                  </p>
+                </div>
               </div>
             )}
           </div>
