@@ -85,43 +85,67 @@ export default function FormTambahKeuangan({
           <div className="glass-card rounded-[28px] p-5">
             <h3 className="mb-4 font-bold text-[#180161]">Data Keuangan</h3>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <input
-                type="date"
-                name="tanggal"
-                value={formKeuangan.tanggal}
-                onChange={handleChange}
-                className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
-              />
+            <div className="grid gap-5 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-[#180161]/70">
+                  Tanggal Transaksi
+                </label>
 
-              <select
-                name="jenis"
-                value={formKeuangan.jenis}
-                onChange={handleChange}
-                className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
-              >
-                <option value="">Pilih jenis transaksi</option>
-                <option value="Pemasukan">Pemasukan</option>
-                <option value="Pengeluaran">Pengeluaran</option>
-              </select>
+                <input
+                  type="date"
+                  name="tanggal"
+                  value={formKeuangan.tanggal}
+                  onChange={handleChange}
+                  className="glass-input w-full rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                />
+              </div>
 
-              <input
-                type="number"
-                name="jumlah"
-                placeholder="Jumlah transaksi"
-                value={formKeuangan.jumlah}
-                onChange={handleChange}
-                className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
-              />
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-[#180161]/70">
+                  Jenis Transaksi
+                </label>
 
-              <input
-                type="text"
-                name="keterangan"
-                placeholder="Keterangan"
-                value={formKeuangan.keterangan}
-                onChange={handleChange}
-                className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
-              />
+                <select
+                  name="jenis"
+                  value={formKeuangan.jenis}
+                  onChange={handleChange}
+                  className="glass-input w-full rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                >
+                  <option value="">Pilih jenis transaksi</option>
+                  <option value="Pemasukan">Pemasukan</option>
+                  <option value="Pengeluaran">Pengeluaran</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-[#180161]/70">
+                  Jumlah Transaksi (Rp)
+                </label>
+
+                <input
+                  type="number"
+                  name="jumlah"
+                  placeholder="Masukkan nominal"
+                  value={formKeuangan.jumlah}
+                  onChange={handleChange}
+                  className="glass-input w-full rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-[#180161]/70">
+                  Keterangan Transaksi
+                </label>
+
+                <input
+                  type="text"
+                  name="keterangan"
+                  placeholder="Contoh: Pembayaran SPP Juni"
+                  value={formKeuangan.keterangan}
+                  onChange={handleChange}
+                  className="glass-input w-full rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                />
+              </div>
             </div>
           </div>
 

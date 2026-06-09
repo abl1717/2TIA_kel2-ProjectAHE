@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FaBookOpen,
   FaExclamationTriangle,
@@ -7,7 +7,7 @@ import {
   FaArrowDown,
 } from "react-icons/fa";
 
-import { modulData } from "../../data/modul";
+import api from "../../services/api";
 
 const PageHeader = React.lazy(
   () => import("../../components/owner/PageHeader"),
@@ -16,9 +16,32 @@ const PageHeader = React.lazy(
 const FormTambahModul = React.lazy(() => import("./FormTambahModul"));
 
 export default function Modul() {
-  const [listModul, setListModul] = useState(modulData);
+  const [listModul, setListModul] = useState([]);
   const [riwayatTransaksi, setRiwayatTransaksi] = useState([]);
   const [showForm, setShowForm] = useState(false);
+
+  useEffect(() => {
+    fetchDataModul();
+  }, []);
+
+  const fetchDataModul = async () => {
+    try {
+      const [modulResponse, transaksiResponse] = await Promise.all([
+        api.get("/modul-pembelajaran"),
+        api.get("/transaksi-modul"),
+      ]);
+
+      setListModul(modulResponse.data.data);
+      setRiwayatTransaksi(transaksiResponse.data.data);
+    } catch (error) {
+      console.error(
+        "Gagal mengambil data modul",
+        error.response?.data || error,
+      );
+      alert("Gagal mengambil data modul dari backend.");
+    }
+  };
+
   const [selectedModul, setSelectedModul] = useState(null);
   const [jenisTransaksi, setJenisTransaksi] = useState("");
 
@@ -58,37 +81,31 @@ export default function Modul() {
     setShowForm(true);
   };
 
-  const handleSubmitTransaksi = (data) => {
-    const hasilUpdateModul = listModul.map((modul) => {
-      if (modul.id === data.idModul) {
-        return {
-          ...modul,
-          stok:
-            data.jenis === "Masuk"
-              ? modul.stok + data.jumlah
-              : modul.stok - data.jumlah,
-        };
-      }
+  const handleSubmitTransaksi = async (data) => {
+    try {
+      await api.post("/transaksi-modul", {
+        modul_pembelajaran_id: data.idModul,
+        jenis: data.jenis,
+        jumlah: data.jumlah,
+        tanggal: new Date().toISOString().slice(0, 10),
+        keterangan: data.keterangan,
+      });
 
-      return modul;
-    });
+      fetchDataModul();
+      setShowForm(false);
+      setSelectedModul(null);
+      setJenisTransaksi("");
+    } catch (error) {
+      console.error(
+        "Gagal menyimpan transaksi modul",
+        error.response?.data || error,
+      );
 
-    const transaksiBaru = {
-      id: riwayatTransaksi.length + 1,
-      idModul: data.idModul,
-      namaModul: data.namaModul,
-      level: data.level,
-      jenis: data.jenis,
-      jumlah: data.jumlah,
-      tanggal: new Date().toLocaleDateString("id-ID"),
-      keterangan: data.keterangan,
-    };
+      const pesan =
+        error.response?.data?.message || "Gagal menyimpan transaksi modul.";
 
-    setListModul(hasilUpdateModul);
-    setRiwayatTransaksi([transaksiBaru, ...riwayatTransaksi]);
-    setShowForm(false);
-    setSelectedModul(null);
-    setJenisTransaksi("");
+      alert(pesan);
+    }
   };
 
   return (
@@ -197,9 +214,7 @@ export default function Modul() {
 
                 <div className="mt-5">
                   <div className="flex items-start justify-between gap-3">
-                    <h3 className="font-bold text-[#180161]">
-                      {modul.namaModul}
-                    </h3>
+                    <h3 className="font-bold text-[#180161]">{modul.nama}</h3>
 
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-bold ${
@@ -308,7 +323,7 @@ export default function Modul() {
                       </td>
 
                       <td className="px-5 py-4 font-semibold text-[#180161]">
-                        {item.namaModul}
+                        {item.modul?.nama || "-"}
                       </td>
 
                       <td className="px-5 py-4">

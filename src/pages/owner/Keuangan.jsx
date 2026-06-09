@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { IoMdAdd } from "react-icons/io";
 import {
   FaWallet,
@@ -8,7 +8,7 @@ import {
   FaTrash,
 } from "react-icons/fa";
 
-import { keuanganData } from "../../data/keuangan";
+import api from "../../services/api";
 
 const FormTambahKeuangan = React.lazy(() => import("./FormTambahKeuangan"));
 
@@ -18,7 +18,26 @@ const PageHeader = React.lazy(
 
 export default function Keuangan() {
   const [showForm, setShowForm] = useState(false);
-  const [listKeuangan, setListKeuangan] = useState(keuanganData);
+  const [listKeuangan, setListKeuangan] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    fetchKeuangan();
+  }, []);
+
+  const fetchKeuangan = async () => {
+    try {
+      const response = await api.get("/keuangan");
+      setListKeuangan(response.data.data);
+    } catch (error) {
+      console.error(
+        "Gagal mengambil data keuangan",
+        error.response?.data || error,
+      );
+      alert("Gagal mengambil data keuangan dari backend.");
+    }
+  };
+
   const [editKeuangan, setEditKeuangan] = useState(null);
 
   const formatRupiah = (angka) => {
@@ -39,18 +58,63 @@ export default function Keuangan() {
 
   const totalSaldo = totalPemasukan - totalPengeluaran;
 
-  const handleTambahKeuangan = (data) => {
-    const keuanganBaru = {
-      id: listKeuangan.length + 1,
-      tanggal: data.keuangan.tanggal,
-      keterangan: data.keuangan.keterangan,
-      jenis: data.keuangan.jenis,
-      jumlah: data.keuangan.jumlah,
-    };
+  const handleTambahKeuangan = async (data) => {
+    try {
+      await api.post("/keuangan", {
+        tanggal: data.keuangan.tanggal,
+        keterangan: data.keuangan.keterangan,
+        jenis: data.keuangan.jenis,
+        jumlah: data.keuangan.jumlah,
+      });
 
-    setListKeuangan([...listKeuangan, keuanganBaru]);
-    setShowForm(false);
+      fetchKeuangan();
+      setShowForm(false);
+    } catch (error) {
+      console.error("Gagal menambah keuangan", error.response?.data || error);
+
+      const pesan =
+        error.response?.data?.message || "Gagal menambah data keuangan.";
+
+      alert(pesan);
+    }
   };
+
+  const handleEditKeuangan = async (data) => {
+    try {
+      await api.put(`/keuangan/${data.keuangan.id}`, {
+        tanggal: data.keuangan.tanggal,
+        keterangan: data.keuangan.keterangan,
+        jenis: data.keuangan.jenis,
+        jumlah: data.keuangan.jumlah,
+      });
+
+      fetchKeuangan();
+      setEditKeuangan(null);
+    } catch (error) {
+      console.error("Gagal mengedit keuangan", error.response?.data || error);
+
+      const pesan =
+        error.response?.data?.message || "Gagal mengedit data keuangan.";
+
+      alert(pesan);
+    }
+  };
+
+  const _searchTerm = searchTerm.toLowerCase();
+
+  const filteredKeuangan = listKeuangan.filter((item) => {
+    const tanggal = (item.tanggal || "").toLowerCase();
+    const keterangan = (item.keterangan || "").toLowerCase();
+    const jenis = (item.jenis || "").toLowerCase();
+    const jumlah = String(item.jumlah || "").toLowerCase();
+
+    return (
+      tanggal.includes(_searchTerm) ||
+      keterangan.includes(_searchTerm) ||
+      jenis.includes(_searchTerm) ||
+      jumlah.includes(_searchTerm)
+    );
+  });
 
   return (
     <div
@@ -140,7 +204,10 @@ export default function Keuangan() {
 
             <input
               type="text"
+              name="searchTerm"
               placeholder="Cari data keuangan..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787] focus:ring-4 focus:ring-[#4F1787]/10"
             />
           </div>
@@ -149,31 +216,32 @@ export default function Keuangan() {
             <table className="w-full min-w-[850px] text-left">
               <thead>
                 <tr className="bg-white/30 text-sm text-[#180161]">
-                  <th className="px-6 py-4">No</th>
-                  <th className="px-6 py-4">Tanggal</th>
-                  <th className="px-6 py-4">Keterangan</th>
-                  <th className="px-6 py-4">Jenis</th>
-                  <th className="px-6 py-4">Jumlah</th>
+                  <th className="px-6 py-4 text-center">No</th>
+                  <th className="px-6 py-4 text-center">Tanggal</th>
+                  <th className="px-6 py-4 text-center">Keterangan</th>
+                  <th className="px-6 py-4 text-center">Jenis</th>
+                  <th className="px-6 py-4 text-center">Jumlah</th>
+                  <th className="px-6 py-4 text-center">Aksi</th>
                 </tr>
               </thead>
 
               <tbody>
-                {listKeuangan.map((item, index) => (
+                {filteredKeuangan.map((item, index) => (
                   <tr
                     key={item.id}
                     className="border-b border-white/40 text-sm transition hover:bg-white/30"
                   >
-                    <td className="px-6 py-4 font-semibold text-[#180161]">
+                    <td className="px-6 py-4 text-center font-semibold text-[#180161]">
                       {index + 1}
                     </td>
 
-                    <td className="px-6 py-4 text-gray-500">{item.tanggal}</td>
+                    <td className="px-6 py-4 text-center text-gray-500">{item.tanggal}</td>
 
-                    <td className="px-6 py-4 font-medium text-[#180161]">
+                    <td className="px-6 py-4 text-center font-medium text-[#180161]">
                       {item.keterangan}
                     </td>
 
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-center">
                       <span
                         className={`rounded-full px-3 py-1 text-xs font-bold ${
                           item.jenis === "Pemasukan"
@@ -186,7 +254,7 @@ export default function Keuangan() {
                     </td>
 
                     <td
-                      className={`px-6 py-4 font-bold ${
+                      className={`px-6 py-4 text-center font-bold ${
                         item.jenis === "Pemasukan"
                           ? "text-[#4F1787]"
                           : "text-[#FB773C]"
@@ -194,10 +262,21 @@ export default function Keuangan() {
                     >
                       {formatRupiah(item.jumlah)}
                     </td>
+
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => setEditKeuangan(item)}
+                          className="rounded-xl bg-white/45 p-3 text-[#EB3678] shadow-sm transition hover:bg-[#EB3678] hover:text-white"
+                        >
+                          <FaEdit />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
 
-                {listKeuangan.length === 0 && (
+                {filteredKeuangan.length === 0 && (
                   <tr>
                     <td
                       colSpan="6"

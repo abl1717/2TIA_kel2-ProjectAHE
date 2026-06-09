@@ -1,12 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FaUserGraduate, FaBookOpen, FaWallet } from "react-icons/fa";
 import { BsPeopleFill } from "react-icons/bs";
 import { MdOutlinePayments } from "react-icons/md";
 
-import { siswaData } from "../../data/siswa";
-import { pengajarData } from "../../data/pengajar";
-import { modulData } from "../../data/modul";
-import { keuanganData } from "../../data/keuangan";
+import api from "../../services/api";
 
 const PageHeader = React.lazy(
   () => import("../../components/owner/PageHeader"),
@@ -21,35 +18,102 @@ export default function Dashboard() {
     }).format(angka);
   };
 
-  const totalSiswa = siswaData.length;
-  const siswaAktif = siswaData.filter(
-    (siswa) => siswa.status === "Aktif",
-  ).length;
+  const [listSiswa, setListSiswa] = useState([]);
+  const [listPengajar, setListPengajar] = useState([]);
+  const [listModul, setListModul] = useState([]);
+  const [listKeuangan, setListKeuangan] = useState([]);
 
-  const totalPengajar = pengajarData.length;
-  const pengajarAktif = pengajarData.filter(
-    (pengajar) => pengajar.status === "Aktif",
-  ).length;
+  useEffect(() => {
+    fetchDashboard();
+  }, []);
 
-  const totalStokModul = modulData.reduce((total, modul) => {
-    return total + modul.stok;
+  const fetchDashboard = async () => {
+    try {
+      const [siswaRes, pengajarRes, modulRes, keuanganRes] = await Promise.all([
+        api.get("/siswa"),
+        api.get("/pengajar"),
+        api.get("/modul-pembelajaran"),
+        api.get("/keuangan"),
+      ]);
+
+      setListSiswa(siswaRes.data.data);
+      setListPengajar(pengajarRes.data.data);
+      setListModul(modulRes.data.data);
+      setListKeuangan(keuanganRes.data.data);
+    } catch (error) {
+      console.error(
+        "Gagal mengambil data dashboard",
+        error.response?.data || error,
+      );
+      alert("Gagal mengambil data dashboard dari backend.");
+    }
+  };
+
+  const totalSiswa = listSiswa.length;
+  const siswaAktif = listSiswa.length;
+
+  const totalPengajar = listPengajar.length;
+  const pengajarAktif = listPengajar.length;
+
+  const totalStokModul = listModul.reduce((total, modul) => {
+    return total + Number(modul.stok);
   }, 0);
 
-  const modulStokRendah = modulData.filter((modul) => modul.stok <= 50).length;
+  const modulStokRendah = listModul.filter((modul) => modul.stok <= 50).length;
 
-  const totalPemasukan = keuanganData
+  const totalPemasukan = listKeuangan
     .filter((item) => item.jenis === "Pemasukan")
-    .reduce((total, item) => total + item.jumlah, 0);
+    .reduce((total, item) => total + Number(item.jumlah), 0);
 
-  const totalPengeluaran = keuanganData
+  const totalPengeluaran = listKeuangan
     .filter((item) => item.jenis === "Pengeluaran")
-    .reduce((total, item) => total + item.jumlah, 0);
+    .reduce((total, item) => total + Number(item.jumlah), 0);
 
   const saldo = totalPemasukan - totalPengeluaran;
 
   const nilaiTertinggiKeuangan = Math.max(
-    ...keuanganData.map((item) => item.jumlah),
+    ...listKeuangan.map((item) => Number(item.jumlah)),
+    1,
   );
+
+  const grafikKeuangan = [
+    {
+      nama: "Pemasukan",
+      jumlah: totalPemasukan,
+    },
+    {
+      nama: "Pengeluaran",
+      jumlah: totalPengeluaran,
+    },
+  ];
+
+  const warnaDonat = [
+    "#180161",
+    "#4F1787",
+    "#EB3678",
+    "#FB773C",
+    "#7C3AED",
+    "#F472B6",
+    "#F97316",
+  ];
+
+  const totalStokUntukDonat = totalStokModul || 1;
+
+  let awalPersen = 0;
+
+  const potonganDonat = listModul
+    .map((modul, index) => {
+      const persen = (Number(modul.stok) / totalStokUntukDonat) * 100;
+      const akhirPersen = awalPersen + persen;
+      const warna = warnaDonat[index % warnaDonat.length];
+
+      const potongan = `${warna} ${awalPersen}% ${akhirPersen}%`;
+
+      awalPersen = akhirPersen;
+
+      return potongan;
+    })
+    .join(", ");
 
   const cards = [
     {
@@ -158,37 +222,38 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="relative h-80 rounded-[32px] glass-panel p-6">
-              <div className="absolute inset-x-6 top-10 border-t border-dashed border-white/60"></div>
-              <div className="absolute inset-x-6 top-24 border-t border-dashed border-white/60"></div>
-              <div className="absolute inset-x-6 top-40 border-t border-dashed border-white/60"></div>
-              <div className="absolute inset-x-6 top-56 border-t border-dashed border-white/60"></div>
+            <div className="h-80 rounded-[32px] glass-panel p-6">
+              <div className="flex h-full items-end justify-center gap-10">
+                {grafikKeuangan.map((item) => {
+                  const tinggi = Math.max(
+                    (Number(item.jumlah) / nilaiTertinggiKeuangan) * 100,
+                    12,
+                  );
 
-              <div className="relative flex h-full items-end gap-5">
-                {keuanganData.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex flex-1 flex-col items-center"
-                  >
+                  return (
                     <div
-                      className={`w-full rounded-t-2xl bg-gradient-to-t shadow-lg ${
-                        item.jenis === "Pemasukan"
-                          ? "from-[#180161] via-[#4F1787] to-[#EB3678]"
-                          : "from-[#FB773C] to-[#EB3678]"
-                      }`}
-                      style={{
-                        height: `${Math.max(
-                          (item.jumlah / nilaiTertinggiKeuangan) * 100,
-                          12,
-                        )}%`,
-                      }}
-                    ></div>
+                      key={item.nama}
+                      className="flex h-full flex-1 flex-col items-center justify-end"
+                    >
+                      <div
+                        className={`w-24 rounded-t-3xl shadow-lg ${
+                          item.nama === "Pemasukan"
+                            ? "bg-gradient-to-t from-[#180161] via-[#4F1787] to-[#EB3678]"
+                            : "bg-gradient-to-t from-[#FB773C] to-[#EB3678]"
+                        }`}
+                        style={{ height: `${tinggi}%` }}
+                      ></div>
 
-                    <span className="mt-3 text-xs text-gray-500">
-                      {item.jenis}
-                    </span>
-                  </div>
-                ))}
+                      <p className="mt-3 text-sm font-semibold text-[#180161]">
+                        {item.nama}
+                      </p>
+
+                      <p className="mt-1 text-xs text-gray-500">
+                        {formatRupiah(item.jumlah)}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -201,8 +266,22 @@ export default function Dashboard() {
               </p>
             </div>
 
-            <div className="mx-auto flex h-52 w-52 items-center justify-center rounded-full bg-conic-gradient shadow-lg">
-              <div className="flex h-32 w-32 flex-col items-center justify-center rounded-full glass-card">
+            <div className="relative mx-auto h-56 w-56">
+              <div
+                className="relative mx-auto flex h-56 w-56 items-center justify-center rounded-full shadow-lg"
+                style={{
+                  background: `conic-gradient(${potonganDonat})`,
+                }}
+              >
+                <div className="flex h-32 w-32 flex-col items-center justify-center rounded-full glass-card">
+                  <h3 className="text-3xl font-bold text-[#180161]">
+                    {totalStokModul}
+                  </h3>
+                  <p className="text-sm text-gray-500">Total Stok</p>
+                </div>
+              </div>
+
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                 <h3 className="text-3xl font-bold text-[#180161]">
                   {totalStokModul}
                 </h3>
@@ -211,13 +290,14 @@ export default function Dashboard() {
             </div>
 
             <div className="mt-8 space-y-4">
-              {modulData.map((modul) => (
+              {listModul.map((modul, index) => (
                 <div key={modul.id} className="flex justify-between text-sm">
                   <span className="flex items-center gap-2 text-gray-500">
                     <span
-                      className={`h-3 w-3 rounded-full ${
-                        modul.stok <= 50 ? "bg-[#FB773C]" : "bg-[#EB3678]"
-                      }`}
+                      className="h-3 w-3 rounded-full"
+                      style={{
+                        backgroundColor: warnaDonat[index % warnaDonat.length],
+                      }}
                     ></span>
                     {modul.level}
                   </span>
@@ -250,20 +330,24 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-4">
-              {siswaData.slice(0, 4).map((siswa) => (
+              {listSiswa.slice(0, 4).map((siswa) => (
                 <div
                   key={siswa.id}
                   className="flex items-center justify-between rounded-2xl glass-panel p-4"
                 >
                   <div>
-                    <h3 className="font-bold text-[#180161]">{siswa.nama}</h3>
+                    <h3 className="font-bold text-[#180161]">
+                      {siswa.nama_siswa}
+                    </h3>
                     <p className="text-sm text-gray-500">
-                      {siswa.level} • SPP {siswa.spp}
+                      {siswa.level_pembelajaran?.[0]?.level ||
+                        "Belum ada level"}{" "}
+                      • {siswa.orang_tua?.nama_orang_tua || "-"}
                     </p>
                   </div>
 
                   <span className="rounded-full bg-[#4F1787]/10 px-3 py-1 text-xs font-bold text-[#4F1787]">
-                    {siswa.status}
+                    Aktif
                   </span>
                 </div>
               ))}
@@ -281,7 +365,7 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-4">
-              {keuanganData.slice(0, 4).map((item) => (
+              {listKeuangan.slice(0, 4).map((item) => (
                 <div
                   key={item.id}
                   className="flex items-center justify-between rounded-2xl glass-panel p-4"

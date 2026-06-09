@@ -20,15 +20,15 @@ export default function FormTambahModul({ modul, jenis, onClose, onSubmit }) {
 
     onSubmit({
       idModul: modul.id,
-      namaModul: modul.namaModul,
+      namaModul: modul.nama,
       level: modul.level,
       jenis,
       jumlah: Number(jumlah),
       keterangan:
         keterangan ||
         (jenis === "Masuk"
-          ? `Penambahan stok ${modul.namaModul}`
-          : `Pengeluaran stok ${modul.namaModul}`),
+          ? `Penambahan stok ${modul.nama}`
+          : `Pengeluaran stok ${modul.nama}`),
     });
   };
 
@@ -65,7 +65,7 @@ export default function FormTambahModul({ modul, jenis, onClose, onSubmit }) {
               <div className="flex justify-between">
                 <span className="text-gray-500">Nama Modul</span>
                 <span className="font-bold text-[#180161]">
-                  {modul.namaModul}
+                  {modul.nama}
                 </span>
               </div>
 

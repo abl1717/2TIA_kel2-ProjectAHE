@@ -1,12 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { IoMdAdd } from "react-icons/io";
 import { FaEdit, FaTrash, FaUserGraduate } from "react-icons/fa";
 import { BsPeopleFill } from "react-icons/bs";
 
-import { siswaData } from "../../data/siswa";
-import { orangTuaData } from "../../data/orangTua";
-import { pengajarData } from "../../data/pengajar";
-import { levelPembelajaranData } from "../../data/levelPembelajaran";
+import api from "../../services/api";
 
 const FormTambahSiswa = React.lazy(() => import("./FormTambahSiswa"));
 
@@ -16,49 +13,60 @@ const PageHeader = React.lazy(
 
 export default function Murid() {
   const [showForm, setShowForm] = useState(false);
-  const [listSiswa, setListSiswa] = useState(siswaData);
-  const [listOrangTua, setListOrangTua] = useState(orangTuaData);
-  const [listPengajar] = useState(pengajarData);
-  const [listLevel, setListLevel] = useState(levelPembelajaranData);
+  const [listSiswa, setListSiswa] = useState([]);
+  const [listOrangTua, setListOrangTua] = useState([]);
+  const [listPengajar, setListPengajar] = useState([]);
+  const [listLevel, setListLevel] = useState([]);
   const [editSiswa, setEditSiswa] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
 
+  useEffect(() => {
+    fetchDataMurid();
+  }, []);
+
+  const fetchDataMurid = async () => {
+    try {
+      const [siswaResponse, orangTuaResponse, pengajarResponse] =
+        await Promise.all([
+          api.get("/siswa"),
+          api.get("/orang-tua"),
+          api.get("/pengajar"),
+        ]);
+
+      setListSiswa(siswaResponse.data.data);
+      setListOrangTua(orangTuaResponse.data.data);
+      setListPengajar(pengajarResponse.data.data);
+    } catch (error) {
+      console.error("Gagal mengambil data murid", error);
+      alert("Gagal mengambil data murid dari backend.");
+    }
+  };
+
   const totalSiswa = listSiswa.length;
   const totalOrangTua = listOrangTua.length;
 
-  const getOrangTua = (idOrangTua) => {
-    const orangTua = listOrangTua.find(
-      (item) => item.id === Number(idOrangTua),
-    );
-
-    return orangTua ? orangTua.nama : "-";
+  const getOrangTua = (siswa) => {
+    return siswa.orang_tua?.nama_orang_tua || "-";
   };
 
-  const getIdPengajarSiswa = (idSiswa) => {
-    const level = listLevel.find((item) => item.idSiswa === Number(idSiswa));
-    return level ? level.idPengajar : "";
+  const getIdPengajarSiswa = (siswa) => {
+    return siswa.level_pembelajaran?.[0]?.pengajar_id || "";
   };
 
-  const getNamaPengajar = (idSiswa) => {
-    const idPengajar = getIdPengajarSiswa(idSiswa);
-
-    const pengajar = listPengajar.find(
-      (item) => item.id === Number(idPengajar),
-    );
-
-    return pengajar ? pengajar.nama : "-";
+  const getNamaPengajar = (siswa) => {
+    return siswa.level_pembelajaran?.[0]?.pengajar?.nama_pengajar || "-";
   };
 
   const _searchTerm = searchTerm.toLowerCase();
 
   const filteredSiswa = listSiswa.filter((siswa) => {
-    const namaSiswa = siswa.nama.toLowerCase();
-    const jenisKelamin = siswa.jenisKelamin.toLowerCase();
-    const tanggalLahir = siswa.tanggalLahir.toLowerCase();
-    const alamat = siswa.alamat.toLowerCase();
-    const namaOrangTua = getOrangTua(siswa.idOrangTua).toLowerCase();
-    const namaPengajar = getNamaPengajar(siswa.id).toLowerCase();
+    const namaSiswa = (siswa.nama_siswa || "").toLowerCase();
+    const jenisKelamin = (siswa.jenis_kelamin || "").toLowerCase();
+    const tanggalLahir = (siswa.tanggal_lahir || "").toLowerCase();
+    const alamat = (siswa.alamat || "").toLowerCase();
+    const namaOrangTua = getOrangTua(siswa).toLowerCase();
+    const namaPengajar = getNamaPengajar(siswa).toLowerCase();
 
     return (
       namaSiswa.includes(_searchTerm) ||
@@ -70,91 +78,86 @@ export default function Murid() {
     );
   });
 
-  const handleTambahSiswa = (data) => {
-    let idOrangTua = Number(data.siswa.idOrangTua);
+  const handleTambahSiswa = async (data) => {
+    try {
+      const payload = {
+        tipe_orang_tua: data.tipeOrangTua,
 
-    if (data.tipeOrangTua === "baru") {
-      const orangTuaBaru = {
-        id: listOrangTua.length + 1,
-        nama: data.orangTua.nama,
-        noHp: data.orangTua.noHp,
-        alamat: data.orangTua.alamat,
+        nama_siswa: data.siswa.nama,
+        jenis_kelamin: data.siswa.jenisKelamin,
+        tanggal_lahir: data.siswa.tanggalLahir,
+        alamat: data.siswa.alamat,
+        pengajar_id: data.siswa.idPengajar,
       };
 
-      setListOrangTua([...listOrangTua, orangTuaBaru]);
-      idOrangTua = orangTuaBaru.id;
+      if (data.tipeOrangTua === "lama") {
+        payload.orang_tua_id = data.siswa.idOrangTua;
+      }
+
+      if (data.tipeOrangTua === "baru") {
+        payload.nama_orang_tua = data.orangTua.nama;
+        payload.no_hp = data.orangTua.noHp;
+        payload.alamat_orang_tua = data.orangTua.alamat;
+        payload.email = data.akunOrangTua.email;
+        payload.password = data.akunOrangTua.password;
+      }
+
+      await api.post("/siswa", payload);
+
+      fetchDataMurid();
+      setShowForm(false);
+    } catch (error) {
+      console.error("Gagal menambah siswa", error.response?.data || error);
+
+      const pesan =
+        error.response?.data?.message || "Gagal menambah data siswa.";
+
+      alert(pesan);
     }
-
-    const idSiswaBaru = listSiswa.length + 1;
-
-    const siswaBaru = {
-      id: idSiswaBaru,
-      nama: data.siswa.nama,
-      jenisKelamin: data.siswa.jenisKelamin,
-      tanggalLahir: data.siswa.tanggalLahir,
-      alamat: data.siswa.alamat,
-      idOrangTua: idOrangTua,
-    };
-
-    const levelBaru = {
-      id: listLevel.length + 1,
-      idSiswa: idSiswaBaru,
-      idPengajar: Number(data.siswa.idPengajar),
-      level: "Level 1",
-      keterangan: "Siswa baru mendaftar",
-    };
-
-    setListSiswa([...listSiswa, siswaBaru]);
-    setListLevel([...listLevel, levelBaru]);
-    setShowForm(false);
   };
 
-  const handleEditSiswa = (data) => {
-    const hasilUpdateSiswa = listSiswa.map((siswa) => {
-      if (siswa.id === data.siswa.id) {
-        return {
-          ...siswa,
-          nama: data.siswa.nama,
-          jenisKelamin: data.siswa.jenisKelamin,
-          tanggalLahir: data.siswa.tanggalLahir,
-          alamat: data.siswa.alamat,
-          idOrangTua: Number(data.siswa.idOrangTua),
-        };
-      }
+  const handleEditSiswa = async (data) => {
+    try {
+      await api.put(`/siswa/${data.siswa.id}`, {
+        nama_siswa: data.siswa.nama,
+        jenis_kelamin: data.siswa.jenisKelamin,
+        tanggal_lahir: data.siswa.tanggalLahir,
+        alamat: data.siswa.alamat,
+        orang_tua_id: data.siswa.idOrangTua,
+        pengajar_id: data.siswa.idPengajar,
+      });
 
-      return siswa;
-    });
+      fetchDataMurid();
+      setEditSiswa(null);
+    } catch (error) {
+      console.error("Gagal mengedit siswa", error.response?.data || error);
 
-    const hasilUpdateLevel = listLevel.map((level) => {
-      if (level.idSiswa === data.siswa.id) {
-        return {
-          ...level,
-          idPengajar: Number(data.siswa.idPengajar),
-        };
-      }
+      const pesan =
+        error.response?.data?.message || "Gagal mengedit data siswa.";
 
-      return level;
-    });
-
-    setListSiswa(hasilUpdateSiswa);
-    setListLevel(hasilUpdateLevel);
-    setEditSiswa(null);
+      alert(pesan);
+    }
   };
 
-  const handleHapusSiswa = (idSiswa) => {
+  const handleHapusSiswa = async (idSiswa) => {
     const konfirmasi = window.confirm(
       "Apakah Anda yakin ingin menghapus data siswa ini?",
     );
 
     if (!konfirmasi) return;
 
-    const hasilHapusSiswa = listSiswa.filter((siswa) => siswa.id !== idSiswa);
-    const hasilHapusLevel = listLevel.filter(
-      (level) => level.idSiswa !== idSiswa,
-    );
+    try {
+      await api.delete(`/siswa/${idSiswa}`);
 
-    setListSiswa(hasilHapusSiswa);
-    setListLevel(hasilHapusLevel);
+      fetchDataMurid();
+    } catch (error) {
+      console.error("Gagal menghapus siswa", error.response?.data || error);
+
+      const pesan =
+        error.response?.data?.message || "Gagal menghapus data siswa.";
+
+      alert(pesan);
+    }
   };
 
   return (
@@ -288,24 +291,24 @@ export default function Murid() {
 
                     <td className="px-6 py-4">
                       <span className="font-bold text-[#180161]">
-                        {siswa.nama}
+                        {siswa.nama_siswa}
                       </span>
                     </td>
 
                     <td className="px-6 py-4 text-gray-600">
-                      {siswa.jenisKelamin || "-"}
+                      {siswa.jenis_kelamin || "-"}
                     </td>
 
                     <td className="px-6 py-4 text-gray-600">
-                      {siswa.tanggalLahir || "-"}
+                      {siswa.tanggal_lahir || "-"}
                     </td>
 
                     <td className="px-6 py-4 text-gray-600">
-                      {getOrangTua(siswa.idOrangTua)}
+                      {getOrangTua(siswa)}
                     </td>
 
                     <td className="px-6 py-4 text-gray-600">
-                      {getNamaPengajar(siswa.id)}
+                      {getNamaPengajar(siswa)}
                     </td>
 
                     <td className="px-6 py-4 text-gray-600">
@@ -318,7 +321,8 @@ export default function Murid() {
                           onClick={() =>
                             setEditSiswa({
                               ...siswa,
-                              idPengajar: getIdPengajarSiswa(siswa.id),
+                              idOrangTua: siswa.orang_tua_id,
+                              idPengajar: getIdPengajarSiswa(siswa),
                             })
                           }
                           className="rounded-xl bg-white/45 p-3 text-[#EB3678] shadow-sm transition hover:bg-[#EB3678] hover:text-white"

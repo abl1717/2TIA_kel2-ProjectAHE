@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { IoMdAdd } from "react-icons/io";
 import { FaEdit, FaTrash, FaChalkboardTeacher } from "react-icons/fa";
 
-import { pengajarData } from "../../data/pengajar";
+import api from "../../services/api";
 import { levelPembelajaranData } from "../../data/levelPembelajaran";
 
 const FormTambahPengajar = React.lazy(() => import("./FormTambahPengajar"));
@@ -13,93 +13,107 @@ const PageHeader = React.lazy(
 
 export default function Pengajar() {
   const [showForm, setShowForm] = useState(false);
-  const [listPengajar, setListPengajar] = useState(pengajarData);
+  const [listPengajar, setListPengajar] = useState([]);
   const [editPengajar, setEditPengajar] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
+  useEffect(() => {
+    fetchPengajar();
+  }, []);
+
+  const fetchPengajar = async () => {
+    try {
+      const response = await api.get("/pengajar");
+
+      setListPengajar(response.data.data);
+    } catch (error) {
+      console.error("Gagal mengambil data pengajar", error);
+    }
+  };
+
   const totalPengajar = listPengajar.length;
 
-  const totalBimbingan = levelPembelajaranData.length;
+  const totalBimbingan = listPengajar.reduce((total, pengajar) => {
+    return total + (pengajar.level_pembelajaran?.length || 0);
+  }, 0);
 
   const pengajarMemilikiMurid = listPengajar.filter((pengajar) => {
-    return levelPembelajaranData.some((level) => {
-      return level.idPengajar === pengajar.id;
-    });
+    return (pengajar.level_pembelajaran?.length || 0) > 0;
   }).length;
 
-  const getJumlahMurid = (idPengajar) => {
-    return levelPembelajaranData.filter((level) => {
-      return level.idPengajar === idPengajar;
-    }).length;
+  const getJumlahMurid = (pengajar) => {
+    return pengajar.level_pembelajaran?.length || 0;
   };
 
   const _searchTerm = searchTerm.toLowerCase();
 
   const filteredPengajar = listPengajar.filter((pengajar) => {
-    const namaPengajar = pengajar.nama.toLowerCase();
-    const noHp = pengajar.noHp.toLowerCase();
+    const nama_pengajar = pengajar.nama_pengajar.toLowerCase();
+    const no_hp = pengajar.no_hp.toLowerCase();
     const alamat = pengajar.alamat.toLowerCase();
     const jumlahMurid = String(getJumlahMurid(pengajar.id)).toLowerCase();
 
     return (
-      namaPengajar.includes(_searchTerm) ||
-      noHp.includes(_searchTerm) ||
+      nama_pengajar.includes(_searchTerm) ||
+      no_hp.includes(_searchTerm) ||
       alamat.includes(_searchTerm) ||
       jumlahMurid.includes(_searchTerm)
     );
   });
 
-  const handleTambahPengajar = (data) => {
-    const pengajarBaru = {
-      id: listPengajar.length + 1,
-      nama: data.pengajar.nama,
-      noHp: data.pengajar.noHp,
-      alamat: data.pengajar.alamat,
-    };
+  const handleTambahPengajar = async (data) => {
+    try {
+      await api.post("/pengajar", {
+        nama_pengajar: data.pengajar.nama_pengajar,
+        no_hp: data.pengajar.no_hp,
+        alamat: data.pengajar.alamat,
+        email: data.akunPengajar.email,
+        password: data.akunPengajar.password,
+      });
 
-    setListPengajar([...listPengajar, pengajarBaru]);
-    setShowForm(false);
-  };
-
-  const handleEditPengajar = (data) => {
-    const hasilUpdate = listPengajar.map((pengajar) => {
-      if (pengajar.id === data.pengajar.id) {
-        return {
-          ...pengajar,
-          nama: data.pengajar.nama,
-          noHp: data.pengajar.noHp,
-          alamat: data.pengajar.alamat,
-        };
-      }
-
-      return pengajar;
-    });
-
-    setListPengajar(hasilUpdate);
-    setEditPengajar(null);
-  };
-
-  const handleHapusPengajar = (idPengajar) => {
-    const jumlahMurid = getJumlahMurid(idPengajar);
-
-    if (jumlahMurid > 0) {
-      alert(
-        "Pengajar ini masih memiliki data bimbingan murid. Data tidak bisa dihapus.",
-      );
-      return;
+      fetchPengajar();
+      setShowForm(false);
+    } catch (error) {
+      console.error("Gagal menambah pengajar", error);
+      alert("Gagal menambah pengajar.");
     }
+  };
 
+  const handleEditPengajar = async (data) => {
+    try {
+      await api.put(`/pengajar/${data.pengajar.id}`, {
+        nama_pengajar: data.pengajar.nama_pengajar,
+        no_hp: data.pengajar.no_hp,
+        alamat: data.pengajar.alamat,
+      });
+
+      fetchPengajar();
+      setEditPengajar(null);
+    } catch (error) {
+      console.error("Gagal mengedit pengajar", error);
+      alert("Gagal mengedit data pengajar.");
+    }
+  };
+
+  const handleHapusPengajar = async (idPengajar) => {
     const konfirmasi = window.confirm(
       "Apakah Anda yakin ingin menghapus data pengajar ini?",
     );
 
     if (!konfirmasi) return;
 
-    const hasilHapus = listPengajar.filter((pengajar) => {
-      return pengajar.id !== idPengajar;
-    });
+    try {
+      await api.delete(`/pengajar/${idPengajar}`);
 
-    setListPengajar(hasilHapus);
+      fetchPengajar();
+    } catch (error) {
+      console.error("Gagal menghapus pengajar", error);
+
+      const pesan =
+        error.response?.data?.message || "Gagal menghapus data pengajar.";
+
+      alert(pesan);
+    }
   };
 
   return (
@@ -233,11 +247,13 @@ export default function Pengajar() {
 
                     <td className="px-6 py-4">
                       <span className="font-bold text-[#180161]">
-                        {pengajar.nama}
+                        {pengajar.nama_pengajar}
                       </span>
                     </td>
 
-                    <td className="px-6 py-4 text-gray-600">{pengajar.noHp}</td>
+                    <td className="px-6 py-4 text-gray-600">
+                      {pengajar.no_hp}
+                    </td>
 
                     <td className="px-6 py-4 text-gray-600">
                       {pengajar.alamat}
@@ -245,7 +261,7 @@ export default function Pengajar() {
 
                     <td className="px-6 py-4">
                       <span className="rounded-full bg-[#4F1787]/10 px-3 py-1 text-xs font-bold text-[#4F1787]">
-                        {getJumlahMurid(pengajar.id)} Murid
+                        {getJumlahMurid(pengajar)} Murid
                       </span>
                     </td>
 

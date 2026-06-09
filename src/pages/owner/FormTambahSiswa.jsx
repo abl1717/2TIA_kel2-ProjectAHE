@@ -35,11 +35,11 @@ export default function FormTambahSiswa({
     if (mode === "edit" && dataEdit) {
       setFormSiswa({
         id: dataEdit.id,
-        nama: dataEdit.nama || "",
-        jenisKelamin: dataEdit.jenisKelamin || "",
-        tanggalLahir: dataEdit.tanggalLahir || "",
+        nama: dataEdit.nama_siswa || "",
+        jenisKelamin: dataEdit.jenis_kelamin || "",
+        tanggalLahir: dataEdit.tanggal_lahir || "",
         alamat: dataEdit.alamat || "",
-        idOrangTua: dataEdit.idOrangTua || "",
+        idOrangTua: dataEdit.idOrangTua || dataEdit.orang_tua_id || "",
         idPengajar: dataEdit.idPengajar || "",
       });
 
@@ -184,7 +184,7 @@ export default function FormTambahSiswa({
                 <option value="">Pilih orang tua</option>
                 {orangTuaList.map((orangTua) => (
                   <option key={orangTua.id} value={orangTua.id}>
-                    {orangTua.nama} - {orangTua.noHp}
+                    {orangTua.nama_orang_tua} - {orangTua.no_hp}
                   </option>
                 ))}
               </select>
@@ -196,32 +196,50 @@ export default function FormTambahSiswa({
                   </h4>
 
                   <div className="grid gap-4 md:grid-cols-3">
-                    <input
-                      type="text"
-                      name="nama"
-                      placeholder="Nama orang tua"
-                      value={formOrangTua.nama}
-                      onChange={handleOrangTuaChange}
-                      className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
-                    />
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-[#180161]/70">
+                        Nama Orang Tua
+                      </label>
 
-                    <input
-                      type="text"
-                      name="noHp"
-                      placeholder="No HP"
-                      value={formOrangTua.noHp}
-                      onChange={handleOrangTuaChange}
-                      className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
-                    />
+                      <input
+                        type="text"
+                        name="nama"
+                        placeholder="Masukkan nama orang tua"
+                        value={formOrangTua.nama}
+                        onChange={handleOrangTuaChange}
+                        className="glass-input w-full rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                      />
+                    </div>
 
-                    <input
-                      type="text"
-                      name="alamat"
-                      placeholder="Alamat orang tua"
-                      value={formOrangTua.alamat}
-                      onChange={handleOrangTuaChange}
-                      className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
-                    />
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-[#180161]/70">
+                        No HP Orang Tua
+                      </label>
+
+                      <input
+                        type="text"
+                        name="noHp"
+                        placeholder="Masukkan nomor HP"
+                        value={formOrangTua.noHp}
+                        onChange={handleOrangTuaChange}
+                        className="glass-input w-full rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-[#180161]/70">
+                        Alamat Orang Tua
+                      </label>
+
+                      <input
+                        type="text"
+                        name="alamat"
+                        placeholder="Masukkan alamat orang tua"
+                        value={formOrangTua.alamat}
+                        onChange={handleOrangTuaChange}
+                        className="glass-input w-full rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -231,23 +249,35 @@ export default function FormTambahSiswa({
                   </h4>
 
                   <div className="grid gap-4 md:grid-cols-2">
-                    <input
-                      type="email"
-                      name="email"
-                      placeholder="Email login orang tua"
-                      value={formAkunOrangTua.email}
-                      onChange={handleAkunOrangTuaChange}
-                      className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
-                    />
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-[#180161]/70">
+                        Email Login
+                      </label>
 
-                    <input
-                      type="password"
-                      name="password"
-                      placeholder="Password login orang tua"
-                      value={formAkunOrangTua.password}
-                      onChange={handleAkunOrangTuaChange}
-                      className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
-                    />
+                      <input
+                        type="email"
+                        name="email"
+                        placeholder="Masukkan email login"
+                        value={formAkunOrangTua.email}
+                        onChange={handleAkunOrangTuaChange}
+                        className="glass-input w-full rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-[#180161]/70">
+                        Password Login
+                      </label>
+
+                      <input
+                        type="password"
+                        name="password"
+                        placeholder="Masukkan password login"
+                        value={formAkunOrangTua.password}
+                        onChange={handleAkunOrangTuaChange}
+                        className="glass-input w-full rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                      />
+                    </div>
                   </div>
 
                   <p className="mt-3 text-xs text-gray-500">
@@ -263,56 +293,86 @@ export default function FormTambahSiswa({
             <h3 className="mb-4 font-bold text-[#180161]">Data Siswa</h3>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <input
-                type="text"
-                name="nama"
-                placeholder="Nama siswa"
-                value={formSiswa.nama}
-                onChange={handleSiswaChange}
-                className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
-              />
+              <div>
+                <label className="mb-2 block text-sm font-medium text-[#180161]/70">
+                  Nama Siswa
+                </label>
 
-              <select
-                name="jenisKelamin"
-                value={formSiswa.jenisKelamin}
-                onChange={handleSiswaChange}
-                className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
-              >
-                <option value="">Pilih jenis kelamin</option>
-                <option value="Laki-laki">Laki-laki</option>
-                <option value="Perempuan">Perempuan</option>
-              </select>
+                <input
+                  type="text"
+                  name="nama"
+                  placeholder="Masukkan nama siswa"
+                  value={formSiswa.nama}
+                  onChange={handleSiswaChange}
+                  className="glass-input w-full rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                />
+              </div>
 
-              <input
-                type="date"
-                name="tanggalLahir"
-                value={formSiswa.tanggalLahir}
-                onChange={handleSiswaChange}
-                className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
-              />
+              <div>
+                <label className="mb-2 block text-sm font-medium text-[#180161]/70">
+                  Jenis Kelamin
+                </label>
 
-              <select
-                name="idPengajar"
-                value={formSiswa.idPengajar}
-                onChange={handleSiswaChange}
-                className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
-              >
-                <option value="">Pilih pengajar</option>
-                {pengajarList.map((pengajar) => (
-                  <option key={pengajar.id} value={pengajar.id}>
-                    {pengajar.nama}
-                  </option>
-                ))}
-              </select>
+                <select
+                  name="jenisKelamin"
+                  value={formSiswa.jenisKelamin}
+                  onChange={handleSiswaChange}
+                  className="glass-input w-full rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                >
+                  <option value="">Pilih jenis kelamin</option>
+                  <option value="Laki-laki">Laki-laki</option>
+                  <option value="Perempuan">Perempuan</option>
+                </select>
+              </div>
 
-              <textarea
-                name="alamat"
-                placeholder="Alamat siswa"
-                value={formSiswa.alamat}
-                onChange={handleSiswaChange}
-                rows="3"
-                className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787] md:col-span-2"
-              ></textarea>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-[#180161]/70">
+                  Tanggal Lahir Siswa
+                </label>
+
+                <input
+                  type="date"
+                  name="tanggalLahir"
+                  value={formSiswa.tanggalLahir}
+                  onChange={handleSiswaChange}
+                  className="glass-input w-full rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-[#180161]/70">
+                  Pengajar
+                </label>
+
+                <select
+                  name="idPengajar"
+                  value={formSiswa.idPengajar}
+                  onChange={handleSiswaChange}
+                  className="glass-input w-full rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                >
+                  <option value="">Pilih pengajar</option>
+                  {pengajarList.map((pengajar) => (
+                    <option key={pengajar.id} value={pengajar.id}>
+                      {pengajar.nama_pengajar}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="mb-2 block text-sm font-medium text-[#180161]/70">
+                  Alamat Siswa
+                </label>
+
+                <textarea
+                  name="alamat"
+                  placeholder="Masukkan alamat siswa"
+                  value={formSiswa.alamat}
+                  onChange={handleSiswaChange}
+                  rows="3"
+                  className="glass-input w-full rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                ></textarea>
+              </div>
             </div>
           </div>
 

@@ -8,8 +8,8 @@ export default function FormTambahPengajar({
   dataEdit = null,
 }) {
   const [formPengajar, setFormPengajar] = useState({
-    nama: "",
-    noHp: "",
+    nama_pengajar: "",
+    no_hp: "",
     alamat: "",
   });
 
@@ -22,8 +22,8 @@ export default function FormTambahPengajar({
     if (mode === "edit" && dataEdit) {
       setFormPengajar({
         id: dataEdit.id,
-        nama: dataEdit.nama || "",
-        noHp: dataEdit.noHp || "",
+        nama_pengajar: dataEdit.nama_pengajar || "",
+        no_hp: dataEdit.no_hp || "",
         alamat: dataEdit.alamat || "",
       });
     }
@@ -50,7 +50,11 @@ export default function FormTambahPengajar({
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formPengajar.nama || !formPengajar.noHp || !formPengajar.alamat) {
+    if (
+      !formPengajar.nama_pengajar ||
+      !formPengajar.no_hp ||
+      !formPengajar.alamat
+    ) {
       alert("Lengkapi data pengajar terlebih dahulu.");
       return;
     }
@@ -98,33 +102,51 @@ export default function FormTambahPengajar({
           <div className="glass-card rounded-[28px] p-5">
             <h3 className="mb-4 font-bold text-[#180161]">Data Pengajar</h3>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <input
-                type="text"
-                name="nama"
-                placeholder="Nama pengajar"
-                value={formPengajar.nama}
-                onChange={handlePengajarChange}
-                className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
-              />
+            <div className="grid gap-5 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-[#180161]/70">
+                  Nama Pengajar
+                </label>
 
-              <input
-                type="text"
-                name="noHp"
-                placeholder="No HP"
-                value={formPengajar.noHp}
-                onChange={handlePengajarChange}
-                className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
-              />
+                <input
+                  type="text"
+                  name="nama_pengajar"
+                  placeholder="Masukkan nama pengajar"
+                  value={formPengajar.nama_pengajar}
+                  onChange={handlePengajarChange}
+                  className="glass-input w-full rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                />
+              </div>
 
-              <textarea
-                name="alamat"
-                placeholder="Alamat pengajar"
-                value={formPengajar.alamat}
-                onChange={handlePengajarChange}
-                rows="4"
-                className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787] md:col-span-2"
-              ></textarea>
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-[#180161]/70">
+                  Nomor HP
+                </label>
+
+                <input
+                  type="text"
+                  name="no_hp"
+                  placeholder="08xxxxxxxxxx"
+                  value={formPengajar.no_hp}
+                  onChange={handlePengajarChange}
+                  className="glass-input w-full rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="mb-2 block text-sm font-semibold text-[#180161]/70">
+                  Alamat Pengajar
+                </label>
+
+                <textarea
+                  name="alamat"
+                  placeholder="Masukkan alamat lengkap pengajar"
+                  value={formPengajar.alamat}
+                  onChange={handlePengajarChange}
+                  rows="4"
+                  className="glass-input w-full rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                />
+              </div>
             </div>
           </div>
 
@@ -134,24 +156,36 @@ export default function FormTambahPengajar({
                 Akun Login Pengajar
               </h3>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email login pengajar"
-                  value={formAkunPengajar.email}
-                  onChange={handleAkunPengajarChange}
-                  className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
-                />
+              <div className="grid gap-5 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-[#180161]/70">
+                    Email Login
+                  </label>
 
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Password login pengajar"
-                  value={formAkunPengajar.password}
-                  onChange={handleAkunPengajarChange}
-                  className="glass-input rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
-                />
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="contoh@email.com"
+                    value={formAkunPengajar.email}
+                    onChange={handleAkunPengajarChange}
+                    className="glass-input w-full rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-[#180161]/70">
+                    Password Login
+                  </label>
+
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="Masukkan password akun"
+                    value={formAkunPengajar.password}
+                    onChange={handleAkunPengajarChange}
+                    className="glass-input w-full rounded-2xl px-5 py-3 text-sm outline-none focus:border-[#4F1787]"
+                  />
+                </div>
               </div>
 
               <p className="mt-3 text-xs text-gray-500">
