@@ -1,42 +1,78 @@
+import React, { useEffect, useState } from "react";
+
 import {
   FaBookOpen,
   FaChild,
   FaChalkboardTeacher,
   FaArrowRight,
 } from "react-icons/fa";
+
 import { useNavigate } from "react-router-dom";
-import React from "react";
-import { orangTuaData } from "../../data/orangTua";
-import { siswaData } from "../../data/siswa";
-import { levelPembelajaranData } from "../../data/levelPembelajaran";
-import { pengajarData } from "../../data/pengajar";
-import { modulData } from "../../data/modul";
+
+import api from "../../services/api";
 
 const Kontak = React.lazy(() => import("../orangtua/Kontak"));
 const Pembelajaran = React.lazy(() => import("../orangtua/Pembelajaran"));
 const Tentang = React.lazy(() => import("../orangtua/Tentang"));
 
 export default function Dashboard() {
+  const [listOrangTua, setListOrangTua] = useState([]);
+  const [listSiswa, setListSiswa] = useState([]);
+  const [listLevel, setListLevel] = useState([]);
+  const [listPengajar, setListPengajar] = useState([]);
+  const [listModul, setListModul] = useState([]);
+
+  useEffect(() => {
+    fetchDataOrangTua();
+  }, []);
+
+  const fetchDataOrangTua = async () => {
+    try {
+      const [orangTuaRes, siswaRes, levelRes, pengajarRes, modulRes] =
+        await Promise.all([
+          api.get("/orang-tua"),
+          api.get("/siswa"),
+          api.get("/level-pembelajaran"),
+          api.get("/pengajar"),
+          api.get("/modul-pembelajaran"),
+        ]);
+
+      setListOrangTua(orangTuaRes.data.data);
+      setListSiswa(siswaRes.data.data);
+      setListLevel(levelRes.data.data);
+      setListPengajar(pengajarRes.data.data);
+      setListModul(modulRes.data.data);
+    } catch (error) {
+      console.error(
+        "Gagal mengambil data orang tua",
+        error.response?.data || error,
+      );
+      alert("Gagal mengambil data dashboard orang tua.");
+    }
+  };
+
   const navigate = useNavigate();
 
-  const orangTuaLogin = orangTuaData.find((orangTua) => {
-    return orangTua.nama === "Ibu Sari";
+  const userLogin = JSON.parse(localStorage.getItem("userLogin"));
+
+  const orangTuaLogin = listOrangTua.find((orangTua) => {
+    return orangTua.user_id === userLogin?.id;
   });
 
-  const dataAnak = siswaData.filter((siswa) => {
-    return siswa.idOrangTua === orangTuaLogin.id;
+  const dataAnak = listSiswa.filter((siswa) => {
+    return siswa.orang_tua_id === orangTuaLogin?.id;
   });
 
   const getLevelAnak = (idSiswa) => {
-    return levelPembelajaranData.find((level) => level.idSiswa === idSiswa);
+    return listLevel.find((level) => level.siswa_id === idSiswa);
   };
 
   const getPengajar = (idPengajar) => {
-    return pengajarData.find((pengajar) => pengajar.id === idPengajar);
+    return listPengajar.find((pengajar) => pengajar.id === idPengajar);
   };
 
   const getModul = (level) => {
-    return modulData.find((modul) => modul.level === level);
+    return listModul.find((modul) => modul.level === level);
   };
 
   const jumlahLevelAktif = dataAnak.filter((anak) => {
@@ -45,7 +81,7 @@ export default function Dashboard() {
 
   const jumlahPengajarAktif = new Set(
     dataAnak
-      .map((anak) => getLevelAnak(anak.id)?.idPengajar)
+      .map((anak) => getLevelAnak(anak.id)?.pengajar_id)
       .filter((idPengajar) => idPengajar !== undefined),
   ).size;
 
@@ -69,9 +105,9 @@ export default function Dashboard() {
             </h1>
 
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-gray-500">
-              Selamat datang, {orangTuaLogin.nama}. Lihat level pembelajaran,
-              modul aktif, pengajar, dan keterangan progres anak dalam satu
-              halaman.
+              Selamat datang, {orangTuaLogin?.nama_orang_tua || "Orang Tua"}.
+              Lihat level pembelajaran, modul aktif, pengajar, dan keterangan
+              progres anak dalam satu halaman.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
@@ -179,7 +215,7 @@ export default function Dashboard() {
         <div className="grid gap-6 md:grid-cols-2">
           {dataAnak.map((anak) => {
             const levelAnak = getLevelAnak(anak.id);
-            const pengajar = getPengajar(levelAnak?.idPengajar);
+            const pengajar = getPengajar(levelAnak?.pengajar_id);
             const modul = getModul(levelAnak?.level);
 
             return (
@@ -190,16 +226,16 @@ export default function Dashboard() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#E5989B] to-[#FFB4A2] text-2xl font-bold text-white shadow-md">
-                      {anak.nama.charAt(0)}
+                      {anak.nama_siswa.charAt(0)}
                     </div>
 
                     <div>
                       <h3 className="text-2xl font-extrabold text-[#6D6875]">
-                        {anak.nama}
+                        {anak.nama_siswa}
                       </h3>
 
                       <p className="text-sm text-gray-500">
-                        Dibimbing oleh {pengajar ? pengajar.nama : "-"}
+                        Dibimbing oleh {pengajar ? pengajar.nama_pengajar : "-"}
                       </p>
                     </div>
                   </div>
@@ -222,7 +258,7 @@ export default function Dashboard() {
                     <p className="text-sm text-gray-400">Modul</p>
 
                     <h4 className="mt-2 text-xl font-bold text-[#6D6875]">
-                      {modul ? modul.namaModul : "-"}
+                      {modul ? modul.nama : "-"}
                     </h4>
                   </div>
                 </div>

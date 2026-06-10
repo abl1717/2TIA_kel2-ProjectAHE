@@ -1,10 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import axios from "axios";
 import { ImSpinner2 } from "react-icons/im";
 import { BsFillExclamationDiamondFill } from "react-icons/bs";
-import { FaChalkboardTeacher, FaEye, FaEyeSlash } from "react-icons/fa";
-import { userData } from "../../data/user";
+import {
+  FaChalkboardTeacher,
+  FaEye,
+  FaEyeSlash,
+  FaUserShield,
+  FaUsers,
+  FaChild,
+} from "react-icons/fa";
+import api from "../../services/api";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -26,89 +32,110 @@ export default function Login() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     setLoading(true);
     setError("");
 
-    const user = userData.find((item) => {
-      return (
-        item.email === dataForm.email && item.password === dataForm.password
-      );
-    });
+    try {
+      const response = await api.post("/login", {
+        email: dataForm.email,
+        password: dataForm.password,
+      });
 
-    if (!user) {
-      setError("Email atau password salah.");
+      const user = response.data.user;
+      const token = response.data.token;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("userLogin", JSON.stringify(user));
+
+      if (user.role === "owner") {
+        navigate("/owner/dashboard");
+      } else if (user.role === "pengajar") {
+        navigate("/pengajar/dashboard");
+      } else if (user.role === "orangtua") {
+        navigate("/orangtua/dashboard");
+      }
+    } catch (error) {
+      const pesan =
+        error.response?.data?.message || "Email atau password salah.";
+      setError(pesan);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    localStorage.setItem("userLogin", JSON.stringify(user));
-
-    if (user.role === "owner") {
-      navigate("/owner/dashboard");
-    } else if (user.role === "pengajar") {
-      navigate("/pengajar/dashboard");
-    } else if (user.role === "orangtua") {
-      navigate("/orangtua/dashboard");
-    }
-
-    setLoading(false);
   };
 
-  const errorInfo = error ? (
-    <div className="mb-5 flex items-center rounded-2xl bg-[#EB3678]/10 p-4 text-sm font-medium text-[#EB3678]">
-      <BsFillExclamationDiamondFill className="me-2 text-lg" />
-      {error}
-    </div>
-  ) : null;
-
-  const loadingInfo = loading ? (
-    <div className="mb-5 flex items-center rounded-2xl bg-[#4F1787]/10 p-4 text-sm font-medium text-[#4F1787]">
-      <ImSpinner2 className="me-2 animate-spin" />
-      Mohon Tunggu ya!
-    </div>
-  ) : null;
-
   return (
-    <div className="auth-glass-panel w-full rounded-[36px] p-7 md:p-8">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h2 className="text-5xl font-extrabold text-[#180161]">
-            Selamat Datang!
-          </h2>
-
-          <p className="mt-3 text-lg text-gray-500">
-            Masuk ke dashboard admin SmartAHE
-          </p>
+    <div className="rounded-[42px] border border-white/70 bg-white/65 p-8 shadow-2xl backdrop-blur-2xl md:p-10">
+      <div className="mb-8 text-center">
+        <div className="mx-auto mb-5 flex w-fit items-center gap-3 rounded-full bg-[#4F1787]/10 px-5 py-3 text-sm font-bold text-[#4F1787]">
+          <FaChalkboardTeacher />
+          Portal SmartAHE
         </div>
 
-        <div className="hidden rounded-3xl bg-gradient-to-br from-[#180161] via-[#4F1787] to-[#EB3678] p-4 text-3xl text-white shadow-lg sm:block">
-          <FaChalkboardTeacher />
+        <h2 className="text-5xl font-extrabold leading-tight text-[#180161]">
+          Masuk ke SmartAHE
+        </h2>
+
+        <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-gray-500">
+          Gunakan akun yang diberikan oleh owner untuk mengakses dashboard
+          sesuai peran Anda.
+        </p>
+
+        <div className="mt-7 grid gap-4 sm:grid-cols-3">
+          <div className="rounded-3xl border border-white/70 bg-white/70 px-5 py-4 shadow-md backdrop-blur-xl">
+            <FaUserShield className="mx-auto text-2xl text-[#8E27A5]" />
+            <p className="mt-2 text-sm font-extrabold text-[#180161]">Owner</p>
+          </div>
+
+          <div className="rounded-3xl border border-white/70 bg-white/70 px-5 py-4 shadow-md backdrop-blur-xl">
+            <FaUsers className="mx-auto text-2xl text-[#EB3678]" />
+            <p className="mt-2 text-sm font-extrabold text-[#180161]">
+              Pengajar
+            </p>
+          </div>
+
+          <div className="rounded-3xl border border-white/70 bg-white/70 px-5 py-4 shadow-md backdrop-blur-xl">
+            <FaChild className="mx-auto text-2xl text-[#FB773C]" />
+            <p className="mt-2 text-sm font-extrabold text-[#180161]">
+              Orang Tua
+            </p>
+          </div>
         </div>
       </div>
 
-      {errorInfo}
-      {loadingInfo}
+      {error && (
+        <div className="mb-5 flex items-center rounded-2xl bg-[#EB3678]/10 p-4 text-sm font-medium text-[#EB3678]">
+          <BsFillExclamationDiamondFill className="me-2 text-lg" />
+          {error}
+        </div>
+      )}
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-5">
+      {loading && (
+        <div className="mb-5 flex items-center rounded-2xl bg-[#4F1787]/10 p-4 text-sm font-medium text-[#4F1787]">
+          <ImSpinner2 className="me-2 animate-spin" />
+          Mohon tunggu ya!
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
           <label className="mb-3 block text-base font-bold text-[#180161]">
-            Username
+            Email
           </label>
 
           <input
-            type="text"
-            id="email"
+            type="email"
             name="email"
-            placeholder="Masukkan username"
+            placeholder="Masukkan email akun SmartAHE"
+            value={dataForm.email}
             onChange={handleChange}
-            className="auth-glass-input w-full rounded-2xl px-5 py-3.5 text-base text-[#180161] outline-none placeholder:text-gray-400 transition focus:border-[#4F1787]/50 focus:ring-4 focus:ring-[#4F1787]/10"
+            className="w-full rounded-2xl border border-white/70 bg-white/75 px-5 py-4 text-base text-[#180161] shadow-sm outline-none placeholder:text-gray-400 transition focus:border-[#EB3678]/40 focus:ring-4 focus:ring-[#EB3678]/10"
           />
         </div>
 
-        <div className="mb-5">
+        <div>
           <label className="mb-3 block text-base font-bold text-[#180161]">
             Password
           </label>
@@ -116,28 +143,28 @@ export default function Login() {
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
-              id="password"
               name="password"
-              placeholder="••••••••"
+              placeholder="Masukkan password"
+              value={dataForm.password}
               onChange={handleChange}
-              className="auth-glass-input w-full rounded-2xl px-5 py-3.5 pr-14 text-base text-[#180161] outline-none placeholder:text-gray-400 transition focus:border-[#4F1787]/50 focus:ring-4 focus:ring-[#4F1787]/10"
+              className="w-full rounded-2xl border border-white/70 bg-white/75 px-5 py-4 pr-14 text-base text-[#180161] shadow-sm outline-none placeholder:text-gray-400 transition focus:border-[#EB3678]/40 focus:ring-4 focus:ring-[#EB3678]/10"
             />
 
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-[#4F1787]"
+              className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-[#EB3678]"
             >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
           </div>
         </div>
 
-        <div className="mb-8 flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <label className="flex items-center gap-3 text-gray-600">
             <input
               type="checkbox"
-              className="h-5 w-5 rounded border-gray-300 accent-[#4F1787]"
+              className="h-5 w-5 rounded border-gray-300 accent-[#EB3678]"
             />
             Ingat saya
           </label>
@@ -153,9 +180,9 @@ export default function Login() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-2xl bg-gradient-to-r from-[#180161] via-[#4F1787] to-[#EB3678] py-4 text-xl font-bold text-white shadow-lg transition duration-300 hover:scale-[1.02] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70"
+          className="w-full rounded-2xl bg-gradient-to-r from-[#8E27A5] via-[#EB3678] to-[#FB773C] py-4 text-xl font-bold text-white shadow-lg transition duration-300 hover:scale-[1.02] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70"
         >
-          {loading ? "Memproses..." : "Login"}
+          {loading ? "Memproses..." : "Masuk ke Dashboard"}
         </button>
       </form>
     </div>

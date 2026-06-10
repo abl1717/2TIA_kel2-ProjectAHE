@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import "./assets/tailwind.css";
 import { Route, Routes } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const Dashboard = React.lazy(() => import("./pages/owner/Dashboard"));
 const Murid = React.lazy(() => import("./pages/owner/Murid"));
@@ -37,7 +38,14 @@ export default function App() {
     <>
       <Suspense fallback={<Loading />}>
         <Routes>
-          <Route path="/owner" element={<MainLayout />}>
+          <Route
+            path="/owner"
+            element={
+              <ProtectedRoute role="owner">
+                <MainLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="murid" element={<Murid />} />
             <Route path="modul" element={<Modul />} />
@@ -49,12 +57,26 @@ export default function App() {
             <Route path="/" element={<Login />} />
           </Route>
 
-          <Route path="/pengajar" element={<PengajarLayout />}>
+          <Route
+            path="/pengajar"
+            element={
+              <ProtectedRoute role="pengajar">
+                <PengajarLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route path="dashboard" element={<DashboardPengajar />} />
             <Route path="level-pembelajaran" element={<LevelPembelajaran />} />
           </Route>
 
-          <Route path="/orangtua" element={<OrangTuaLayout />}>
+          <Route
+            path="/orangtua"
+            element={
+              <ProtectedRoute role="orangtua">
+                <OrangTuaLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route path="dashboard" element={<DashboardOrangTua />} />
             <Route path="detail-anak/:id" element={<DetailLevelAnak />} />
             <Route path="pembelajaran" element={<PembelajaranOrangTua />} />

@@ -2,9 +2,17 @@ import { FaBook, FaWallet, FaSignOutAlt } from "react-icons/fa";
 import { PiStudentFill } from "react-icons/pi";
 import { RxDashboard } from "react-icons/rx";
 import { BsPeopleFill } from "react-icons/bs";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 export default function Sidebar({ setSidebarOpen }) {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userLogin");
+    navigate("/");
+  };
+
   const menus = [
     { name: "Dashboard", path: "/owner/dashboard", icon: <RxDashboard /> },
     { name: "Siswa", path: "/owner/murid", icon: <PiStudentFill /> },
@@ -68,7 +76,7 @@ export default function Sidebar({ setSidebarOpen }) {
 
       <div className="relative z-10 rounded-[24px] border border-white/25 bg-white/12 p-2 text-white shadow-lg backdrop-blur-xl">
         <button
-          onClick={() => (window.location.href = "/")}
+          onClick={handleLogout}
           className="flex h-12 w-full items-center justify-center rounded-2xl bg-white/18 px-2 text-white transition-colors duration-100 hover:bg-white/65 hover:text-[#180161] group-hover:justify-start"
         >
           <span className="flex h-9 min-w-9 items-center justify-center text-lg">

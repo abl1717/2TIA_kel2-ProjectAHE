@@ -14,14 +14,6 @@ export default function Header() {
       </div>
 
       <div className="flex items-center gap-5">
-        <div className="relative cursor-pointer rounded-2xl border border-white/60 bg-white/45 p-4 text-[#4F1787] shadow-sm backdrop-blur-xl transition hover:bg-white/65 hover:shadow-md">
-          <FaBell />
-
-          <span className="absolute -right-2 -top-2 rounded-full bg-[#EB3678] px-2 py-1 text-xs font-bold text-white shadow-md">
-            50
-          </span>
-        </div>
-
         <div className="flex items-center gap-4 border-l border-white/60 pl-5">
           <div className="text-right">
             <p className="text-sm text-gray-500">Hello,</p>

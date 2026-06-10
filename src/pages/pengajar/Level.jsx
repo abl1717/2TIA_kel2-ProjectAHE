@@ -1,15 +1,7 @@
-import React, { useState } from "react";
-import {
-  FaEdit,
-  FaClipboardList,
-  FaUserGraduate,
-  FaBookOpen,
-} from "react-icons/fa";
+import React, { useEffect, useState } from "react";
+import { FaEdit, FaClipboardList, FaUserGraduate } from "react-icons/fa";
 
-import { levelPembelajaranData } from "../../data/levelPembelajaran";
-import { siswaData } from "../../data/siswa";
-import { pengajarData } from "../../data/pengajar";
-import { modulData } from "../../data/modul";
+import api from "../../services/api";
 
 const FormCatatLevel = React.lazy(() => import("./FormCatatLevel"));
 
@@ -19,17 +11,48 @@ const PengajarPageHeader = React.lazy(
 
 export default function Level() {
   const [showForm, setShowForm] = useState(false);
-  const [listLevel, setListLevel] = useState(levelPembelajaranData);
+  const [listLevel, setListLevel] = useState([]);
+  const [listSiswa, setListSiswa] = useState([]);
+  const [listPengajar, setListPengajar] = useState([]);
+  const [listModul, setListModul] = useState([]);
   const [editLevel, setEditLevel] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterLevel, setFilterLevel] = useState("");
 
-  const pengajarLogin = pengajarData.find((pengajar) => {
-    return pengajar.nama === "Bu Rina";
+  useEffect(() => {
+    fetchDataLevel();
+  }, []);
+
+  const fetchDataLevel = async () => {
+    try {
+      const [levelRes, siswaRes, pengajarRes, modulRes] = await Promise.all([
+        api.get("/level-pembelajaran"),
+        api.get("/siswa"),
+        api.get("/pengajar"),
+        api.get("/modul-pembelajaran"),
+      ]);
+
+      setListLevel(levelRes.data.data);
+      setListSiswa(siswaRes.data.data);
+      setListPengajar(pengajarRes.data.data);
+      setListModul(modulRes.data.data);
+    } catch (error) {
+      console.error(
+        "Gagal mengambil data level",
+        error.response?.data || error,
+      );
+      alert("Gagal mengambil data level pembelajaran dari backend.");
+    }
+  };
+
+  const userLogin = JSON.parse(localStorage.getItem("userLogin"));
+
+  const pengajarLogin = listPengajar.find((pengajar) => {
+    return pengajar.user_id === userLogin?.id;
   });
 
   const dataLevelPengajar = listLevel.filter((level) => {
-    return level.idPengajar === pengajarLogin.id;
+    return level.pengajar_id === pengajarLogin?.id;
   });
 
   const totalSiswa = dataLevelPengajar.length;
@@ -37,63 +60,92 @@ export default function Level() {
   const totalLevelBerbeda = new Set(dataLevelPengajar.map((item) => item.level))
     .size;
 
-  const totalModulTerkait = dataLevelPengajar.filter((item) => {
-    return modulData.some((modul) => modul.level === item.level);
-  }).length;
-
-  const siswaYangSudahAdaLevel = dataLevelPengajar.map((item) => item.idSiswa);
-
-  const siswaBelumDicatat = siswaData.filter((siswa) => {
-    return !siswaYangSudahAdaLevel.includes(siswa.id);
-  });
-
-  const getSiswa = (idSiswa) => {
-    return siswaData.find((siswa) => siswa.id === idSiswa);
+  const getSiswa = (item) => {
+    return item.siswa || listSiswa.find((siswa) => siswa.id === item.siswa_id);
   };
 
   const getModul = (levelSiswa) => {
-    return modulData.find((modul) => modul.level === levelSiswa);
+    return listModul.find((modul) => modul.level === levelSiswa);
   };
 
-  const handleTambahLevel = (data) => {
-    const levelBaru = {
-      id: listLevel.length + 1,
-      idSiswa: data.levelPembelajaran.idSiswa,
-      idPengajar: data.levelPembelajaran.idPengajar,
-      level: data.levelPembelajaran.level,
-      keterangan: data.levelPembelajaran.keterangan,
-    };
+  const dataLevelPengajarLain = listLevel.filter((level) => {
+    return level.pengajar_id !== pengajarLogin?.id;
+  });
 
-    setListLevel([...listLevel, levelBaru]);
-    setShowForm(false);
-  };
+  const siswaPengajarLain = dataLevelPengajarLain
+    .map((level) => {
+      const siswa = getSiswa(level);
 
-  const handleEditLevel = (data) => {
-    const hasilUpdate = listLevel.map((item) => {
-      if (item.id === data.levelPembelajaran.id) {
-        return {
-          ...item,
-          idSiswa: data.levelPembelajaran.idSiswa,
-          idPengajar: data.levelPembelajaran.idPengajar,
-          level: data.levelPembelajaran.level,
-          keterangan: data.levelPembelajaran.keterangan,
-        };
-      }
+      if (!siswa) return null;
 
-      return item;
+      return {
+        ...siswa,
+        levelData: level,
+      };
+    })
+    .filter((siswa) => siswa !== null);
+
+  const handleBantuCatatLevel = async (data) => {
+    const levelSiswa = listLevel.find((level) => {
+      return level.siswa_id === data.levelPembelajaran.idSiswa;
     });
 
-    setListLevel(hasilUpdate);
-    setEditLevel(null);
+    if (!levelSiswa) {
+      alert("Data level siswa tidak ditemukan.");
+      return;
+    }
+
+    try {
+      await api.put(`/level-pembelajaran/${levelSiswa.id}`, {
+        siswa_id: levelSiswa.siswa_id,
+        pengajar_id: levelSiswa.pengajar_id,
+        level: data.levelPembelajaran.level,
+        keterangan: `${data.levelPembelajaran.keterangan} (Dicatat sementara oleh ${pengajarLogin?.nama_pengajar})`,
+      });
+
+      fetchDataLevel();
+      setShowForm(false);
+    } catch (error) {
+      console.error(
+        "Gagal membantu catat level",
+        error.response?.data || error,
+      );
+
+      const pesan =
+        error.response?.data?.message || "Gagal membantu catat level siswa.";
+
+      alert(pesan);
+    }
+  };
+
+  const handleEditLevel = async (data) => {
+    try {
+      await api.put(`/level-pembelajaran/${data.levelPembelajaran.id}`, {
+        siswa_id: data.levelPembelajaran.idSiswa,
+        pengajar_id: data.levelPembelajaran.idPengajar,
+        level: data.levelPembelajaran.level,
+        keterangan: data.levelPembelajaran.keterangan,
+      });
+
+      fetchDataLevel();
+      setEditLevel(null);
+    } catch (error) {
+      console.error("Gagal mengedit level", error.response?.data || error);
+
+      const pesan =
+        error.response?.data?.message || "Gagal mengedit data level.";
+
+      alert(pesan);
+    }
   };
 
   const filteredLevel = dataLevelPengajar.filter((item) => {
-    const siswa = getSiswa(item.idSiswa);
+    const siswa = getSiswa(item);
     const modul = getModul(item.level);
 
-    const namaSiswa = siswa?.nama?.toLowerCase() || "";
+    const namaSiswa = siswa?.nama_siswa?.toLowerCase() || "";
     const level = item.level.toLowerCase();
-    const namaModul = modul?.namaModul?.toLowerCase() || "";
+    const namaModul = modul?.nama?.toLowerCase() || "";
     const keterangan = item.keterangan?.toLowerCase() || "";
 
     const cocokSearch =
@@ -131,11 +183,11 @@ export default function Level() {
             onClick={() => setShowForm(true)}
             className="rounded-2xl bg-gradient-to-r from-[#6b1d7c] via-[#cf30a2] to-[#ed6a45] px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:scale-105"
           >
-            + Catat Level Baru
+            + Bantu Catat Siswa
           </button>
         </div>
 
-        <div className="mb-6 grid gap-5 md:grid-cols-3">
+        <div className="mb-6 grid gap-5 md:grid-cols-2">
           <div className="pengajar-glass-card rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01]">
             <div className="flex items-center gap-4">
               <div className="rounded-2xl bg-gradient-to-br from-[#6b1d7c] to-[#b230cf] p-4 text-2xl text-white shadow-md">
@@ -167,24 +219,6 @@ export default function Level() {
 
                 <h3 className="text-3xl font-bold text-[#240a29]">
                   {totalLevelBerbeda}
-                </h3>
-              </div>
-            </div>
-          </div>
-
-          <div className="pengajar-glass-card rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01]">
-            <div className="flex items-center gap-4">
-              <div className="rounded-2xl bg-gradient-to-br from-[#ed6a45] to-[#cf30a2] p-4 text-2xl text-white shadow-md">
-                <FaBookOpen />
-              </div>
-
-              <div>
-                <p className="text-sm font-semibold text-gray-400">
-                  Modul Terkait
-                </p>
-
-                <h3 className="text-3xl font-bold text-[#240a29]">
-                  {totalModulTerkait}
                 </h3>
               </div>
             </div>
@@ -244,7 +278,7 @@ export default function Level() {
 
               <tbody>
                 {filteredLevel.map((item, index) => {
-                  const siswa = getSiswa(item.idSiswa);
+                  const siswa = getSiswa(item);
                   const modul = getModul(item.level);
 
                   return (
@@ -259,11 +293,13 @@ export default function Level() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#6b1d7c] to-[#cf30a2] font-bold text-white shadow-md">
-                            {siswa ? siswa.nama.charAt(0) : "-"}
+                            {siswa ? siswa.nama_siswa.charAt(0) : "-"}
                           </div>
 
                           <span className="font-bold text-[#240a29]">
-                            {siswa ? siswa.nama : "Data siswa tidak ditemukan"}
+                            {siswa
+                              ? siswa.nama_siswa
+                              : "Data siswa tidak ditemukan"}
                           </span>
                         </div>
                       </td>
@@ -275,7 +311,7 @@ export default function Level() {
                       </td>
 
                       <td className="px-6 py-4 text-gray-500">
-                        {modul ? modul.namaModul : "-"}
+                        {modul ? modul.nama : "-"}
                       </td>
 
                       <td className="px-6 py-4 text-gray-500">
@@ -285,8 +321,13 @@ export default function Level() {
                       <td className="px-6 py-4">
                         <div className="flex justify-center">
                           <button
-                            onClick={() => setEditLevel(item)}
-                            className="rounded-xl bg-white/45 p-3 text-[#cf30a2] shadow-sm transition hover:bg-[#cf30a2] hover:text-white"
+                            onClick={() =>
+                              setEditLevel({
+                                ...item,
+                                idSiswa: item.siswa_id,
+                                idPengajar: item.pengajar_id,
+                              })
+                            }
                           >
                             <FaEdit />
                           </button>
@@ -314,9 +355,10 @@ export default function Level() {
 
       {showForm && (
         <FormCatatLevel
+          mode="bantu"
           onClose={() => setShowForm(false)}
-          onSubmit={handleTambahLevel}
-          siswaList={siswaBelumDicatat}
+          onSubmit={handleBantuCatatLevel}
+          siswaList={siswaPengajarLain}
           pengajarLogin={pengajarLogin}
         />
       )}
@@ -327,7 +369,7 @@ export default function Level() {
           dataEdit={editLevel}
           onClose={() => setEditLevel(null)}
           onSubmit={handleEditLevel}
-          siswaList={siswaData}
+          siswaList={listSiswa}
           pengajarLogin={pengajarLogin}
         />
       )}

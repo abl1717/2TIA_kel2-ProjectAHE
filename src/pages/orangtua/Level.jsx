@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   FaArrowLeft,
   FaBookOpen,
@@ -7,23 +7,71 @@ import {
   FaChalkboardTeacher,
 } from "react-icons/fa";
 
-import { siswaData } from "../../data/siswa";
-import { levelPembelajaranData } from "../../data/levelPembelajaran";
-import { pengajarData } from "../../data/pengajar";
-import { modulData } from "../../data/modul";
+import api from "../../services/api";
 
 export default function Level() {
+  const [siswa, setSiswa] = useState(null);
+  const [levelData, setLevelData] = useState(null);
+  const [pengajar, setPengajar] = useState(null);
+  const [modul, setModul] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   const { id } = useParams();
   const navigate = useNavigate();
-
-  const siswa = siswaData.find((item) => item.id === Number(id));
 
   useEffect(() => {
     window.scrollTo({
       top: 0,
       behavior: "smooth",
     });
-  }, []);
+
+    fetchDetailLevel();
+  }, [id]);
+
+  const fetchDetailLevel = async () => {
+    try {
+      const [siswaRes, levelRes, pengajarRes, modulRes] = await Promise.all([
+        api.get(`/siswa/${id}`),
+        api.get("/level-pembelajaran"),
+        api.get("/pengajar"),
+        api.get("/modul-pembelajaran"),
+      ]);
+
+      const siswaData = siswaRes.data.data;
+      const levelAnak = levelRes.data.data.find((item) => {
+        return item.siswa_id === Number(id);
+      });
+
+      const pengajarData = pengajarRes.data.data.find((item) => {
+        return item.id === levelAnak?.pengajar_id;
+      });
+
+      const modulData = modulRes.data.data.find((item) => {
+        return item.level === levelAnak?.level;
+      });
+
+      setSiswa(siswaData);
+      setLevelData(levelAnak || null);
+      setPengajar(pengajarData || null);
+      setModul(modulData || null);
+    } catch (error) {
+      console.error(
+        "Gagal mengambil detail level anak",
+        error.response?.data || error,
+      );
+      setSiswa(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="orangtua-glass-panel rounded-3xl p-8 text-center text-[#6D6875]">
+        Memuat data level anak...
+      </div>
+    );
+  }
 
   if (!siswa) {
     return (
@@ -32,16 +80,6 @@ export default function Level() {
       </div>
     );
   }
-
-  const levelData = levelPembelajaranData.find(
-    (item) => item.idSiswa === siswa.id,
-  );
-
-  const pengajar = pengajarData.find(
-    (item) => item.id === levelData?.idPengajar,
-  );
-
-  const modul = modulData.find((item) => item.level === levelData?.level);
 
   const getProgress = (level) => {
     switch (level) {
@@ -87,11 +125,11 @@ export default function Level() {
             </p>
 
             <h1 className="text-5xl font-extrabold text-[#6D6875]">
-              {siswa.nama}
+              {siswa.nama_siswa}
             </h1>
 
             <p className="mt-3 text-gray-500">
-              Dibimbing oleh <b>{pengajar ? pengajar.nama : "-"}</b>
+              Dibimbing oleh <b>{pengajar ? pengajar.nama_pengajar : "-"}</b>
             </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -111,7 +149,7 @@ export default function Level() {
                 <p className="mt-3 text-sm text-gray-500">Modul</p>
 
                 <h3 className="text-xl font-bold text-[#6D6875]">
-                  {modul?.namaModul || "-"}
+                  {modul?.nama || "-"}
                 </h3>
               </div>
 
@@ -121,7 +159,7 @@ export default function Level() {
                 <p className="mt-3 text-sm text-gray-500">Pengajar</p>
 
                 <h3 className="text-xl font-bold text-[#6D6875]">
-                  {pengajar?.nama || "-"}
+                  {pengajar?.nama_pengajar || "-"}
                 </h3>
               </div>
 

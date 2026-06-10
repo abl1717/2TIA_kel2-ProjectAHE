@@ -3,6 +3,13 @@ import { useNavigate } from "react-router-dom";
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const userLogin = JSON.parse(localStorage.getItem("userLogin"));
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userLogin");
+    navigate("/");
+  };
 
   const scrollToSection = (sectionId) => {
     navigate("/orangtua/dashboard");
@@ -80,25 +87,19 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="orangtua-glass-input relative rounded-full p-4 text-[#B5838D]">
-            <FaBell />
-
-            <span className="absolute -right-1 -top-1 rounded-full bg-[#FFB4A2] px-2 py-1 text-[10px] font-bold text-white shadow-md">
-              2
-            </span>
-          </div>
-
           <div className="orangtua-glass-input hidden items-center gap-3 rounded-full px-4 py-3 md:flex">
             <FaUserCircle className="text-3xl text-[#B5838D]" />
 
             <div>
-              <p className="text-sm font-bold text-[#6D6875]">Ibu Sari</p>
+              <p className="text-sm font-bold text-[#6D6875]">
+                {userLogin?.name || "Orang Tua"}
+              </p>
               <p className="text-xs text-gray-400">Orang Tua</p>
             </div>
           </div>
 
           <button
-            onClick={() => (window.location.href = "/")}
+            onClick={handleLogout}
             className="rounded-full bg-gradient-to-r from-[#E5989B] to-[#FFB4A2] p-4 text-white shadow-md transition hover:scale-105"
           >
             <FaSignOutAlt />

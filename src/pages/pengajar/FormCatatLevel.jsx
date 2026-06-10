@@ -20,8 +20,12 @@ export default function FormCatatLevel({
     if (mode === "edit" && dataEdit) {
       setFormLevel({
         id: dataEdit.id,
-        idSiswa: dataEdit.idSiswa || "",
-        idPengajar: dataEdit.idPengajar || pengajarLogin?.id || "",
+        idSiswa: dataEdit.idSiswa || dataEdit.siswa_id || "",
+        idPengajar:
+          dataEdit.idPengajar ||
+          dataEdit.pengajar_id ||
+          pengajarLogin?.id ||
+          "",
         level: dataEdit.level || "",
         keterangan: dataEdit.keterangan || "",
       });
@@ -67,13 +71,17 @@ export default function FormCatatLevel({
             <h2 className="text-2xl font-bold text-[#240a29]">
               {mode === "edit"
                 ? "Edit Level Pembelajaran"
-                : "Catat Level Pembelajaran"}
+                : mode === "bantu"
+                  ? "Bantu Catat Level Siswa"
+                  : "Catat Level Pembelajaran"}
             </h2>
 
             <p className="mt-1 text-sm text-gray-500">
               {mode === "edit"
                 ? "Ubah level dan keterangan pembelajaran siswa."
-                : "Tambahkan data level dan keterangan progres pembelajaran siswa."}
+                : mode === "bantu"
+                  ? "Catat perkembangan siswa dari pengajar lain tanpa memindahkan pengajar utama."
+                  : "Tambahkan data level dan keterangan progres pembelajaran siswa."}
             </p>
           </div>
 
@@ -102,7 +110,10 @@ export default function FormCatatLevel({
                 <option value="">Pilih siswa</option>
                 {siswaList.map((siswa) => (
                   <option key={siswa.id} value={siswa.id}>
-                    {siswa.nama}
+                    {siswa.nama_siswa}
+                    {siswa.levelData?.pengajar?.nama_pengajar
+                      ? ` - Pengajar: ${siswa.levelData.pengajar.nama_pengajar}`
+                      : ""}
                   </option>
                 ))}
               </select>
@@ -125,7 +136,7 @@ export default function FormCatatLevel({
 
               <input
                 type="text"
-                value={pengajarLogin?.nama || "-"}
+                value={pengajarLogin?.nama_pengajar || "-"}
                 disabled
                 className="pengajar-glass-input cursor-not-allowed rounded-2xl px-5 py-3 text-sm text-gray-500 outline-none md:col-span-2"
               />
@@ -154,7 +165,11 @@ export default function FormCatatLevel({
               type="submit"
               className="rounded-2xl bg-gradient-to-r from-[#6b1d7c] via-[#cf30a2] to-[#ed6a45] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:scale-105"
             >
-              {mode === "edit" ? "Simpan Perubahan" : "Simpan Level"}
+              {mode === "edit"
+                ? "Simpan Perubahan"
+                : mode === "bantu"
+                  ? "Simpan Catatan Bantuan"
+                  : "Simpan Level"}
             </button>
           </div>
         </form>
