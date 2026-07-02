@@ -233,7 +233,7 @@ export default function Level() {
               </h3>
 
               <p className="mt-1 text-sm text-gray-500">
-                Data sementara menggunakan state React.
+                Data level pembelajaran siswa yang diajar.
               </p>
             </div>
 
