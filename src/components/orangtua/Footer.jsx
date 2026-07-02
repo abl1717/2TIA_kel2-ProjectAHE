@@ -53,9 +53,9 @@ export default function Footer() {
             <h3 className="text-lg font-bold text-[#6D6875]">Kontak</h3>
 
             <div className="mt-5 space-y-3 text-gray-500">
-              <p>📍 Rumbai, Pekanbaru</p>
+              <p>📍 Balik Alam, Mandau, Kab. Bengkalis, Riau</p>
               <p>📧 smartahe@gmail.com</p>
-              <p>📞 +62 812 3456 7890</p>
+              <p>📞 +62 851 7423 8467</p>
             </div>
           </div>
         </div>
