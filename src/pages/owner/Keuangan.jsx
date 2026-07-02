@@ -198,7 +198,7 @@ export default function Keuangan() {
                 Daftar Keuangan
               </h3>
               <p className="mt-1 text-sm text-gray-500">
-                Data sementara menggunakan state React.
+                Data laporan uang masuk dan keluar bimbingan belajar SmartAHE.
               </p>
             </div>
 
