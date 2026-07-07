@@ -38,9 +38,9 @@ export default function Dashboard() {
         ]);
 
       setListOrangTua(orangTuaRes.data.data);
-      setListSiswa(siswaRes.data.data);
-      setListLevel(levelRes.data.data);
-      setListPengajar(pengajarRes.data.data);
+      setListSiswa(siswaRes.data.data.data);
+      setListLevel(levelRes.data.data.data);
+      setListPengajar(pengajarRes.data.data.data);
       setListModul(modulRes.data.data);
     } catch (error) {
       console.error(

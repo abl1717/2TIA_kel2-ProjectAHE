@@ -32,17 +32,16 @@ export default function Level() {
     try {
       const [siswaRes, levelRes, pengajarRes, modulRes] = await Promise.all([
         api.get(`/siswa/${id}`),
-        api.get("/level-pembelajaran"),
+        api.get(`/level-pembelajaran/siswa/${id}`),
         api.get("/pengajar"),
         api.get("/modul-pembelajaran"),
       ]);
 
       const siswaData = siswaRes.data.data;
-      const levelAnak = levelRes.data.data.find((item) => {
-        return item.siswa_id === Number(id);
-      });
 
-      const pengajarData = pengajarRes.data.data.find((item) => {
+      const levelAnak = levelRes.data.data;
+
+      const pengajarData = pengajarRes.data.data.data.find((item) => {
         return item.id === levelAnak?.pengajar_id;
       });
 
@@ -127,10 +126,6 @@ export default function Level() {
             <h1 className="text-5xl font-extrabold text-[#6D6875]">
               {siswa.nama_siswa}
             </h1>
-
-            <p className="mt-3 text-gray-500">
-              Dibimbing oleh <b>{pengajar ? pengajar.nama_pengajar : "-"}</b>
-            </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
               <div className="orangtua-glass-card rounded-3xl p-5">

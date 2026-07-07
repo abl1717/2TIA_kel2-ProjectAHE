@@ -6,6 +6,7 @@ import api from "../../services/api";
 import { levelPembelajaranData } from "../../data/levelPembelajaran";
 
 const FormTambahPengajar = React.lazy(() => import("./FormTambahPengajar"));
+const Pagination = React.lazy(() => import("../../components/Pagination"));
 
 const PageHeader = React.lazy(
   () => import("../../components/owner/PageHeader"),
@@ -17,29 +18,42 @@ export default function Pengajar() {
   const [editPengajar, setEditPengajar] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const perPage = 10;
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [lastPage, setLastPage] = useState(1);
+
+  const [totalData, setTotalData] = useState(0);
+
+  const [summary, setSummary] = useState({
+    total_pengajar: 0,
+    pengajar_membimbing: 0,
+    total_bimbingan: 0,
+  });
+
   useEffect(() => {
-    fetchPengajar();
-  }, []);
+    fetchPengajar(currentPage);
+  }, [currentPage]);
 
-  const fetchPengajar = async () => {
+  const fetchPengajar = async (page = 1) => {
     try {
-      const response = await api.get("/pengajar");
+      const response = await api.get(
+        `/pengajar?page=${page}&per_page=${perPage}`,
+      );
 
-      setListPengajar(response.data.data);
+      setListPengajar(response.data.data.data);
+
+      setCurrentPage(response.data.data.current_page);
+
+      setLastPage(response.data.data.last_page);
+
+      setTotalData(response.data.data.total);
+      setSummary(response.data.summary);
     } catch (error) {
       console.error("Gagal mengambil data pengajar", error);
     }
   };
-
-  const totalPengajar = listPengajar.length;
-
-  const totalBimbingan = listPengajar.reduce((total, pengajar) => {
-    return total + (pengajar.level_pembelajaran?.length || 0);
-  }, 0);
-
-  const pengajarMemilikiMurid = listPengajar.filter((pengajar) => {
-    return (pengajar.level_pembelajaran?.length || 0) > 0;
-  }).length;
 
   const getJumlahMurid = (pengajar) => {
     return pengajar.level_pembelajaran?.length || 0;
@@ -157,7 +171,7 @@ export default function Pengajar() {
                 </p>
 
                 <h3 className="text-3xl font-bold text-[#180161]">
-                  {totalPengajar}
+                  {summary.total_pengajar}
                 </h3>
               </div>
             </div>
@@ -171,11 +185,11 @@ export default function Pengajar() {
 
               <div>
                 <p className="text-sm font-semibold text-gray-500">
-                  Pengajar Membimbing
+                  Pengajar Aktif
                 </p>
 
                 <h3 className="text-3xl font-bold text-[#180161]">
-                  {pengajarMemilikiMurid}
+                  {summary.pengajar_membimbing}
                 </h3>
               </div>
             </div>
@@ -189,11 +203,11 @@ export default function Pengajar() {
 
               <div>
                 <p className="text-sm font-semibold text-gray-500">
-                  Total Bimbingan
+                  Bimbingan Aktif
                 </p>
 
                 <h3 className="text-3xl font-bold text-[#180161]">
-                  {totalBimbingan}
+                  {summary.total_bimbingan}
                 </h3>
               </div>
             </div>
@@ -242,7 +256,7 @@ export default function Pengajar() {
                     className="border-b border-white/40 text-sm transition hover:bg-white/35"
                   >
                     <td className="px-6 py-4 font-semibold text-[#180161]">
-                      {index + 1}
+                      {(currentPage - 1) * perPage + index + 1}
                     </td>
 
                     <td className="px-6 py-4">
@@ -298,6 +312,13 @@ export default function Pengajar() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            currentPage={currentPage}
+            lastPage={lastPage}
+            totalData={totalData}
+            perPage={perPage}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
 

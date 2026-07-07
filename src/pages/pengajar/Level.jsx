@@ -4,6 +4,7 @@ import { FaEdit, FaClipboardList, FaUserGraduate } from "react-icons/fa";
 import api from "../../services/api";
 
 const FormCatatLevel = React.lazy(() => import("./FormCatatLevel"));
+const Pagination = React.lazy(() => import("../../components/Pagination"));
 
 const PengajarPageHeader = React.lazy(
   () => import("../../components/pengajar/PageHeader"),
@@ -12,6 +13,13 @@ const PengajarPageHeader = React.lazy(
 export default function Level() {
   const [showForm, setShowForm] = useState(false);
   const [listLevel, setListLevel] = useState([]);
+  const perPage = 10;
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [lastPage, setLastPage] = useState(1);
+
+  const [totalData, setTotalData] = useState(0);
   const [listSiswa, setListSiswa] = useState([]);
   const [listPengajar, setListPengajar] = useState([]);
   const [listModul, setListModul] = useState([]);
@@ -20,21 +28,27 @@ export default function Level() {
   const [filterLevel, setFilterLevel] = useState("");
 
   useEffect(() => {
-    fetchDataLevel();
-  }, []);
+    fetchDataLevel(currentPage);
+  }, [currentPage]);
 
-  const fetchDataLevel = async () => {
+  const fetchDataLevel = async (page = 1) => {
     try {
       const [levelRes, siswaRes, pengajarRes, modulRes] = await Promise.all([
-        api.get("/level-pembelajaran"),
+        api.get(`/level-pembelajaran?page=${page}&per_page=${perPage}`),
         api.get("/siswa"),
         api.get("/pengajar"),
         api.get("/modul-pembelajaran"),
       ]);
 
-      setListLevel(levelRes.data.data);
-      setListSiswa(siswaRes.data.data);
-      setListPengajar(pengajarRes.data.data);
+      setListLevel(levelRes.data.data.data);
+
+      setCurrentPage(levelRes.data.data.current_page);
+
+      setLastPage(levelRes.data.data.last_page);
+
+      setTotalData(levelRes.data.data.total);
+      setListSiswa(siswaRes.data.data.data);
+      setListPengajar(pengajarRes.data.data.data);
       setListModul(modulRes.data.data);
     } catch (error) {
       console.error(
@@ -103,7 +117,7 @@ export default function Level() {
         keterangan: `${data.levelPembelajaran.keterangan} (Dicatat sementara oleh ${pengajarLogin?.nama_pengajar})`,
       });
 
-      fetchDataLevel();
+      fetchDataLevel(currentPage);
       setShowForm(false);
     } catch (error) {
       console.error(
@@ -127,7 +141,7 @@ export default function Level() {
         keterangan: data.levelPembelajaran.keterangan,
       });
 
-      fetchDataLevel();
+      fetchDataLevel(currentPage);
       setEditLevel(null);
     } catch (error) {
       console.error("Gagal mengedit level", error.response?.data || error);
@@ -287,7 +301,7 @@ export default function Level() {
                       className="border-b border-white/40 text-sm transition hover:bg-white/35"
                     >
                       <td className="px-6 py-4 font-semibold text-[#240a29]">
-                        {index + 1}
+                        {(currentPage - 1) * perPage + index + 1}
                       </td>
 
                       <td className="px-6 py-4">
@@ -350,6 +364,13 @@ export default function Level() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            currentPage={currentPage}
+            lastPage={lastPage}
+            totalData={totalData}
+            perPage={perPage}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
 

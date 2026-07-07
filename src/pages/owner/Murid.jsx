@@ -5,6 +5,7 @@ import { BsPeopleFill } from "react-icons/bs";
 
 import api from "../../services/api";
 
+const Pagination = React.lazy(() => import("../../components/Pagination"));
 const FormTambahSiswa = React.lazy(() => import("./FormTambahSiswa"));
 
 const PageHeader = React.lazy(
@@ -21,30 +22,51 @@ export default function Murid() {
 
   const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => {
-    fetchDataMurid();
-  }, []);
+  const perPage = 10;
 
-  const fetchDataMurid = async () => {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [lastPage, setLastPage] = useState(1);
+
+  const [totalData, setTotalData] = useState(0);
+  const [totalSiswa, setTotalSiswa] = useState(0);
+
+  const [totalOrangTua, setTotalOrangTua] = useState(0);
+
+  const [totalPengajar, setTotalPengajar] = useState(0);
+  useEffect(() => {
+    fetchDataMurid(currentPage);
+  }, [currentPage]);
+
+  const fetchDataMurid = async (page = 1) => {
     try {
       const [siswaResponse, orangTuaResponse, pengajarResponse] =
         await Promise.all([
-          api.get("/siswa"),
+          api.get(`/siswa?page=${page}&per_page=${perPage}`),
           api.get("/orang-tua"),
           api.get("/pengajar"),
         ]);
 
-      setListSiswa(siswaResponse.data.data);
+      setListSiswa(siswaResponse.data.data.data);
+
+      setCurrentPage(siswaResponse.data.data.current_page);
+
+      setLastPage(siswaResponse.data.data.last_page);
+
+      setTotalData(siswaResponse.data.data.total);
+      setTotalSiswa(siswaResponse.data.summary.total_siswa);
+
+      setTotalOrangTua(siswaResponse.data.summary.total_orang_tua);
+
+      setTotalPengajar(siswaResponse.data.summary.total_pengajar);
+
       setListOrangTua(orangTuaResponse.data.data);
-      setListPengajar(pengajarResponse.data.data);
+
+      setListPengajar(pengajarResponse.data.data.data);
     } catch (error) {
-      console.error("Gagal mengambil data murid", error);
-      alert("Gagal mengambil data murid dari backend.");
+      console.error(error);
     }
   };
-
-  const totalSiswa = listSiswa.length;
-  const totalOrangTua = listOrangTua.length;
 
   const getOrangTua = (siswa) => {
     return siswa.orang_tua?.nama_orang_tua || "-";
@@ -237,7 +259,7 @@ export default function Murid() {
                 </p>
 
                 <h3 className="text-3xl font-bold text-[#180161]">
-                  {listPengajar.length}
+                  {totalPengajar}
                 </h3>
               </div>
             </div>
@@ -250,7 +272,7 @@ export default function Murid() {
               <h3 className="text-xl font-bold text-[#180161]">Daftar Siswa</h3>
 
               <p className="mt-1 text-sm text-gray-500">
-                Data sementara menggunakan state React.
+                Data siswa, orang tua, dan pengajar yang terdaftar di SmartAHE.
               </p>
             </div>
 
@@ -286,7 +308,7 @@ export default function Murid() {
                     className="border-b border-white/40 text-sm transition hover:bg-white/35"
                   >
                     <td className="px-6 py-4 font-semibold text-[#180161]">
-                      {index + 1}
+                      {(currentPage - 1) * perPage + index + 1}
                     </td>
 
                     <td className="px-6 py-4">
@@ -354,6 +376,13 @@ export default function Murid() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            currentPage={currentPage}
+            lastPage={lastPage}
+            totalData={totalData}
+            perPage={perPage}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
 

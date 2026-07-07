@@ -25,9 +25,9 @@ export default function Dashboard() {
         api.get("/pengajar"),
       ]);
 
-      setListLevel(levelRes.data.data);
-      setListSiswa(siswaRes.data.data);
-      setListPengajar(pengajarRes.data.data);
+      setListLevel(levelRes.data.data.data);
+      setListSiswa(siswaRes.data.data.data);
+      setListPengajar(pengajarRes.data.data.data);
     } catch (error) {
       console.error(
         "Gagal mengambil dashboard pengajar",

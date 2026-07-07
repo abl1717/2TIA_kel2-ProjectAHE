@@ -10,6 +10,7 @@ import {
 
 import api from "../../services/api";
 
+const Pagination = React.lazy(() => import("../../components/Pagination"));
 const FormTambahKeuangan = React.lazy(() => import("./FormTambahKeuangan"));
 
 const PageHeader = React.lazy(
@@ -19,16 +20,40 @@ const PageHeader = React.lazy(
 export default function Keuangan() {
   const [showForm, setShowForm] = useState(false);
   const [listKeuangan, setListKeuangan] = useState([]);
+  const [totalSaldo, setTotalSaldo] = useState(0);
+  const [totalPemasukan, setTotalPemasukan] = useState(0);
+  const [totalPengeluaran, setTotalPengeluaran] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => {
-    fetchKeuangan();
-  }, []);
+  const perPage = 10;
 
-  const fetchKeuangan = async () => {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [lastPage, setLastPage] = useState(1);
+
+  const [totalData, setTotalData] = useState(0);
+
+  useEffect(() => {
+    fetchKeuangan(currentPage);
+  }, [currentPage]);
+
+  const fetchKeuangan = async (page = 1) => {
     try {
-      const response = await api.get("/keuangan");
-      setListKeuangan(response.data.data);
+      const response = await api.get(
+        `/keuangan?page=${page}&per_page=${perPage}`,
+      );
+      setListKeuangan(response.data.data.data);
+
+      setCurrentPage(response.data.data.current_page);
+
+      setLastPage(response.data.data.last_page);
+
+      setTotalData(response.data.data.total);
+      setTotalSaldo(response.data.summary.total_saldo);
+
+      setTotalPemasukan(response.data.summary.total_pemasukan);
+
+      setTotalPengeluaran(response.data.summary.total_pengeluaran);
     } catch (error) {
       console.error(
         "Gagal mengambil data keuangan",
@@ -48,15 +73,7 @@ export default function Keuangan() {
     }).format(angka);
   };
 
-  const totalPemasukan = listKeuangan
-    .filter((item) => item.jenis === "Pemasukan")
-    .reduce((total, item) => total + item.jumlah, 0);
-
-  const totalPengeluaran = listKeuangan
-    .filter((item) => item.jenis === "Pengeluaran")
-    .reduce((total, item) => total + item.jumlah, 0);
-
-  const totalSaldo = totalPemasukan - totalPengeluaran;
+  const totalDataKeuangan = totalData;
 
   const handleTambahKeuangan = async (data) => {
     try {
@@ -232,10 +249,12 @@ export default function Keuangan() {
                     className="border-b border-white/40 text-sm transition hover:bg-white/30"
                   >
                     <td className="px-6 py-4 text-center font-semibold text-[#180161]">
-                      {index + 1}
+                      {(currentPage - 1) * perPage + index + 1}
                     </td>
 
-                    <td className="px-6 py-4 text-center text-gray-500">{item.tanggal}</td>
+                    <td className="px-6 py-4 text-center text-gray-500">
+                      {item.tanggal}
+                    </td>
 
                     <td className="px-6 py-4 text-center font-medium text-[#180161]">
                       {item.keterangan}
@@ -289,6 +308,13 @@ export default function Keuangan() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            currentPage={currentPage}
+            lastPage={lastPage}
+            totalData={totalData}
+            perPage={perPage}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
 

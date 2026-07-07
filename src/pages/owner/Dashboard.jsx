@@ -36,10 +36,10 @@ export default function Dashboard() {
         api.get("/keuangan"),
       ]);
 
-      setListSiswa(siswaRes.data.data);
-      setListPengajar(pengajarRes.data.data);
+      setListSiswa(siswaRes.data.data.data);
+      setListPengajar(pengajarRes.data.data.data);
       setListModul(modulRes.data.data);
-      setListKeuangan(keuanganRes.data.data);
+      setListKeuangan(keuanganRes.data.data.data);
     } catch (error) {
       console.error(
         "Gagal mengambil data dashboard",
@@ -161,13 +161,13 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
           {cards.map((card, index) => (
             <div
               key={index}
               className="rounded-[32px] glass-card p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01]"
             >
-              <div className="flex items-center gap-5">
+              <div className="flex items-center gap-4">
                 <div
                   className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${card.color} text-3xl text-white shadow-lg`}
                 >
@@ -203,11 +203,6 @@ export default function Dashboard() {
                   Ringkasan pemasukan dan pengeluaran SmartAHE.
                 </p>
               </div>
-
-              <select className="glass-input rounded-xl px-4 py-2 text-sm font-medium text-[#180161] outline-none focus:border-[#4F1787]">
-                <option>Bulan Ini</option>
-                <option>Minggu Ini</option>
-              </select>
             </div>
 
             <div className="mb-4 flex justify-end gap-5 text-sm">
