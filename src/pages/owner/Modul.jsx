@@ -12,33 +12,45 @@ import api from "../../services/api";
 const PageHeader = React.lazy(
   () => import("../../components/owner/PageHeader"),
 );
+const Pagination = React.lazy(() => import("../../components/Pagination"));
 
 const FormTambahModul = React.lazy(() => import("./FormTambahModul"));
 
 export default function Modul() {
   const [listModul, setListModul] = useState([]);
   const [riwayatTransaksi, setRiwayatTransaksi] = useState([]);
+  const perPage = 10;
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [totalData, setTotalData] = useState(0);
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    fetchDataModul();
-  }, []);
+    fetchDataModul(currentPage);
+  }, [currentPage]);
 
-  const fetchDataModul = async () => {
+  const fetchDataModul = async (page = 1) => {
     try {
       const [modulResponse, transaksiResponse] = await Promise.all([
         api.get("/modul-pembelajaran"),
-        api.get("/transaksi-modul"),
+        api.get(`/transaksi-modul?page=${page}&per_page=${perPage}`),
       ]);
 
       setListModul(modulResponse.data.data);
-      setRiwayatTransaksi(transaksiResponse.data.data);
+
+      setRiwayatTransaksi(transaksiResponse.data.data.data);
+
+      setCurrentPage(transaksiResponse.data.data.current_page);
+
+      setLastPage(transaksiResponse.data.data.last_page);
+
+      setTotalData(transaksiResponse.data.data.total);
     } catch (error) {
       console.error(
         "Gagal mengambil data modul",
         error.response?.data || error,
       );
-      alert("Gagal mengambil data modul dari backend.");
     }
   };
 
@@ -91,7 +103,7 @@ export default function Modul() {
         keterangan: data.keterangan,
       });
 
-      fetchDataModul();
+      fetchDataModul(currentPage);
       setShowForm(false);
       setSelectedModul(null);
       setJenisTransaksi("");
@@ -304,29 +316,33 @@ export default function Modul() {
             </div>
           ) : (
             <div className="mt-5 overflow-x-auto">
-              <table className="w-full min-w-[800px] text-left text-sm">
+              <table className="w-full table-fixed text-left text-sm">
                 <thead>
                   <tr className="bg-white/35 text-[#180161]">
-                    <th className="px-5 py-4">Tanggal</th>
-                    <th className="px-5 py-4">Modul</th>
-                    <th className="px-5 py-4">Jenis</th>
-                    <th className="px-5 py-4">Jumlah</th>
-                    <th className="px-5 py-4">Keterangan</th>
+                    <th className="px-6 py-4 text-center">No</th>
+                    <th className="px-6 py-4 text-center">Tanggal</th>
+                    <th className="px-6 py-4 text-center">Modul</th>
+                    <th className="px-6 py-4 text-center">Jenis</th>
+                    <th className="px-6 py-4 text-center">Jumlah</th>
+                    <th className="px-6 py-4 text-center">Keterangan</th>
                   </tr>
                 </thead>
 
                 <tbody>
-                  {riwayatTransaksi.map((item) => (
+                  {riwayatTransaksi.map((item, index) => (
                     <tr key={item.id} className="border-b border-white/40">
-                      <td className="px-5 py-4 text-gray-600">
+                      <td className="px-6 py-4 text-center font-semibold text-[#180161]">
+                        {(currentPage - 1) * perPage + index + 1}
+                      </td>
+                      <td className="px-6 py-4 text-center text-gray-600">
                         {item.tanggal}
                       </td>
 
-                      <td className="px-5 py-4 font-semibold text-[#180161]">
+                      <td className="px-6 py-4 text-center font-semibold text-[#180161]">
                         {item.modul?.nama || "-"}
                       </td>
 
-                      <td className="px-5 py-4">
+                      <td className="px-6 py-4 text-center">
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-bold ${
                             item.jenis === "Masuk"
@@ -338,18 +354,25 @@ export default function Modul() {
                         </span>
                       </td>
 
-                      <td className="px-5 py-4 font-bold text-[#180161]">
+                      <td className="px-6 py-4 text-center font-bold text-[#180161]">
                         {item.jenis === "Masuk" ? "+" : "-"}
                         {item.jumlah}
                       </td>
 
-                      <td className="px-5 py-4 text-gray-600">
+                      <td className="px-6 py-4 text-gray-600">
                         {item.keterangan}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              <Pagination
+                currentPage={currentPage}
+                lastPage={lastPage}
+                totalData={totalData}
+                perPage={perPage}
+                onPageChange={setCurrentPage}
+              />
             </div>
           )}
         </div>
